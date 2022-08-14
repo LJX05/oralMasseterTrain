@@ -4,3 +4,4 @@
 
 /.vs
 /aspnetapp/obj
+/aspnetapp/bin/Debug/net6.0
