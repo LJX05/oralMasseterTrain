@@ -17,7 +17,7 @@ namespace entityModel
         /// <summary>
         /// 微信的openid
         /// </summary>
-        public int OpenId { get; set; }
+        public string OpenId { get; set; } = string.Empty;
         /// <summary>
         /// 负责的医生id
         /// </summary>
@@ -35,7 +35,9 @@ namespace entityModel
         /// 日常视频
         /// </summary>
         public int DailyVideoId { get; set; }
-
+        /// <summary>
+        /// 签到日期
+        /// </summary>
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

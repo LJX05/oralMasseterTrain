@@ -6,14 +6,16 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace aspnetapp
 {
-    public partial class CounterContext : DbContext
+    public partial class BusinessContext : DbContext
     {
-        public CounterContext()
+        public BusinessContext()
         {
         }
         public DbSet<Counter> Counters { get; set; } = null!;
 
         public DbSet<ClockIn> ClockIns { get; set; } = null!;
+
+        public DbSet<Video> Videos { get; set; } = null!;
 
         public DbSet<Patient> Patients { get; set; } = null!;
 
@@ -27,7 +29,7 @@ namespace aspnetapp
 
         public DbSet<RoleFunc> RoleFuncs { get; set; } = null!;
 
-        public CounterContext(DbContextOptions<CounterContext> options)
+        public BusinessContext(DbContextOptions<BusinessContext> options)
             : base(options)
         {
         }

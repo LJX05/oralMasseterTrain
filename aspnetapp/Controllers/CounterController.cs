@@ -21,9 +21,9 @@ namespace aspnetapp.Controllers
     [ApiController]
     public class CounterController : ControllerBase
     {
-        private readonly CounterContext _context;
+        private readonly BusinessContext _context;
 
-        public CounterController(CounterContext context)
+        public CounterController(BusinessContext context)
         {
             _context = context;
         }

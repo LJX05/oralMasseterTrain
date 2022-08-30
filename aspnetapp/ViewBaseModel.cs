@@ -22,17 +22,16 @@ namespace aspnetapp
     public class PageQuery
     {
         public string search { get; set; } = string.Empty;
-
+        
+        public int pageIndex { get; set; } = 1;
+        
         public int pageSize { get; set; } = 15;
-
-        public int pageNum { get; set; } = 0;
     }
     public class PageResult
     {
-        public IEnumerable data { get; set; } = Enumerable.Empty<object>();
+        public IEnumerable list { get; set; } = Enumerable.Empty<object>();
 
-        public int pageCount { get; set; } = 15;
+        public int count { get; set; } = 15;
 
-         
     }
 }

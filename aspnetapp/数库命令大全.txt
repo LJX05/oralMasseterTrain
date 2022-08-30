@@ -1,0 +1,7 @@
+﻿dotnet ef migrations add {InitialCreate} -c IdentityContext   ---初始化数据库
+dotnet ef database update -c IdentityContext --更新数据库
+1.在代码中定义或更新数据模型。
+2.添加迁移，以将此模型转换为可应用于数据库的更改。
+3.检查迁移是否正确表示你的意图。
+4.应用迁移以更新数据库，使其与模型保持同步。
+5.重复步骤 1 到 4，进一步优化模型并使数据库保持同步。

@@ -12,7 +12,7 @@ namespace entityModel
         [Key]
         public int Id { get; set; }
 
-        public int OpenId { get; set; }
+        public string OpenId { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
 
