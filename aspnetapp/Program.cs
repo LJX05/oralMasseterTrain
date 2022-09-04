@@ -80,6 +80,7 @@ catch (Exception ex)
     Console.WriteLine(ex.Message + "----An error occurred while seeding the database.");
 }
 #endregion
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseMiddleware<AuthorityMiddleware>();
 app.UseRouting();
