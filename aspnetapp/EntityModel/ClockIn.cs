@@ -21,7 +21,7 @@ namespace entityModel
         /// <summary>
         /// 负责的医生id
         /// </summary>
-        public int  DoctorId { get; set; }
+        public string  DoctorId { get; set; }
         /// <summary>
         /// 反馈意见
         /// </summary>

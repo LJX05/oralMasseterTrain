@@ -33,9 +33,9 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var count = _context.Videos.Count(o => o.Name.Contains(pageQuery.search));
-                var videos = _context.Videos.Where(o => o.Name.Contains(pageQuery.search))
-                    .Skip(pageQuery.pageSize * pageQuery.pageIndex)
+                var count = _context.Videos.Count(o => o.Name.Contains(pageQuery.search) && o.Type == "教学视频");
+                var videos = _context.Videos.Where(o => o.Name.Contains(pageQuery.search) && o.Type == "教学视频")
+                    .Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
                     .Take(pageQuery.pageSize)
                     .ToList();
 
@@ -87,7 +87,12 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
+        /// <summary>
+        /// 获取视频的id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="cache"></param>
+        /// <returns></returns>
         [HttpGet("GetVideoUrl/{id}")]
         public async Task<ActionResult> GetVideoUrl(int id, [FromServices] IMemoryCache cache)
         {

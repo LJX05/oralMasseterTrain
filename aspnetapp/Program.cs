@@ -1,4 +1,5 @@
 using aspnetapp;
+using aspnetapp.Common;
 using aspnetapp.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -63,9 +64,11 @@ else
         options.RoutePrefix = string.Empty;
     });
 }
+
 #region 初始化话数据库
 try
 {
+    WebAppContext.Init(app.Services);
     using var serviceScope = app.Services.CreateScope();
     var context = serviceScope.ServiceProvider.GetService<IdentityContext>();
     var userManager = serviceScope.ServiceProvider.GetService<UserManager<NoteUser>>();

@@ -15,7 +15,7 @@ public class ClockModel
     /// <summary>
     /// 日常视频
     /// </summary>
-    public int DailyVideoId { get; set; }
+    public string DailyVideoFileId { get; set; } = string.Empty;
 }
 namespace aspnetapp.Controllers
 {
@@ -63,19 +63,25 @@ namespace aspnetapp.Controllers
             }
         }
 
-        // GET api/<PatientController>/5
-        [HttpGet("{id}")]
+        [HttpGet("{openid}")]
         public ActionResult Get(string openid)
         {
             try
             {
                 var clocks =  _context.ClockIns.Where(b => b.OpenId  == openid);
 
-                return Ok(clocks.Select(o => new 
+                return Ok(new Result()
                 {
-                   videoId = o.DailyVideoId,//视频
-                   date =  o.CreatedAt, //时间
-                }));
+                    code = "1",
+                    message = "success",
+                    data = clocks.Select(o => new
+                    {
+                        o.Id,
+                        videoId = o.DailyVideoId,//视频
+                        date = o.CreatedAt.ToString("yyyy-MM-dd"), //时间
+                        date1 = o.CreatedAt.ToString("yyyy/MM/dd"), //时间
+                    })
+                });
             }
             catch (Exception ex)
             {
@@ -93,18 +99,65 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var patient = new ClockIn()
+                //应该先保存文件
+                var patient = _context.Patients.FirstOrDefault(o => o.OpenId == clockModel.OpenId);
+                if (patient == null)
                 {
+                    return Ok(new Result() { code = "-1", message = "没有此患者" });
+                }
+                var clockIn = _context.ClockIns.FirstOrDefault(o => o.OpenId == clockModel.OpenId && o.CreatedAt.Date == DateTime.Now.Date);
+                var video = new Video()
+                {
+                    Name = patient.Name + DateTime.Now.ToString("yyyyMMddHHmmss") + "每日打卡",
+                    FileId = clockModel.DailyVideoFileId,
                     CreatedAt = DateTime.Now,
-                    DailyVideoId = clockModel.DailyVideoId,
-                    TeachVideoId = clockModel.TeachVideoId,
-                    OpenId = clockModel.OpenId,
+                    Describe = "每日打卡视频" + patient.Name,
+                    UpdatedAt = DateTime.Now,
+                    Type = "打卡视频",
+                    UploaderId = patient.Id
                 };
-                await _context.ClockIns.AddAsync(patient);
-                await _context.SaveChangesAsync();
-                return Ok();
+
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var entity = await _context.Videos.AddAsync(video);
+                    await _context.SaveChangesAsync();
+                    if (clockIn == null)
+                    {
+                        clockIn = new ClockIn()
+                        {
+                            CreatedAt = DateTime.Now,
+                            DailyVideoId = entity.Entity.Id,
+                            TeachVideoId = patient.TeachVideoId.GetValueOrDefault(),
+                            OpenId = clockModel.OpenId,
+                            DoctorId = patient.DoctorId
+                        };
+                        await _context.ClockIns.AddAsync(clockIn);
+                    }
+                    else
+                    {
+                        clockIn.CreatedAt = DateTime.Now;
+                        clockIn.UpdatedAt = DateTime.Now;
+                        clockIn.DailyVideoId = entity.Entity.Id;
+                        _context.ClockIns.Update(clockIn);
+                    }
+
+                    patient.LastCheckInVideoId = entity.Entity.Id;
+                    patient.LastCheckInTime = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return Ok(new Result() { code = "1", message = "success" });
+
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    return Ok(new Result() { code = "-1", message = e.Message });
+                }
+
+                return Ok(new Result() { code = "1", message = "success" });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -115,8 +168,8 @@ namespace aspnetapp.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <param name="value"></param>
-        [HttpPut("{id}")]
-        public async Task<ActionResult> PutAsync(int id, string comment)
+        [HttpPut("feedback/{id}")]
+        public async Task<ActionResult> FeedbackAsync(int id, [FromBody]string content)
         {
             try
             {
@@ -125,11 +178,11 @@ namespace aspnetapp.Controllers
                 {
                     return Ok(new Result() { code = "-1", message = "没有打卡记录" });
                 }
-                model.FeedbackComments = comment;
+                model.FeedbackComments = content;
                 model.UpdatedAt = DateTime.Now;
                 _context.ClockIns.Update(model);
                 await _context.SaveChangesAsync();
-                return Ok();
+                return Ok(new Result() { code = "1", message = "success" });
             }
             catch (Exception ex)
             {

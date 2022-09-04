@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Specialized;
@@ -12,7 +13,7 @@ namespace aspnetapp.Common
     /// </summary>
     public class WXCommon
     {
-
+       
         public static string APPID
         {
             get
@@ -37,16 +38,20 @@ namespace aspnetapp.Common
                 return "prod-4gsbtrau8fb83a30";
             }
         }
-        private static string _ACCESS_TOKEN = null;
+ 
         public static string ACCESS_TOKEN
         {
             get
             {
-                if (string.IsNullOrEmpty(_ACCESS_TOKEN))
+                var memoryCache = WebAppContext.Instance.ServiceProvider.GetService<IMemoryCache>();
+                
+                if(memoryCache?.TryGetValue("ACCESS_TOKEN",out var _ACCESS_TOKEN) == true)
                 {
-                    _ACCESS_TOKEN = GetAccess_token().Result;
+                    return _ACCESS_TOKEN + "";
                 }
-                return _ACCESS_TOKEN;
+                _ACCESS_TOKEN = GetAccess_token().Result;
+                memoryCache.Set("ACCESS_TOKEN", _ACCESS_TOKEN, TimeSpan.FromSeconds(7000));
+                return memoryCache.Get("ACCESS_TOKEN") + "";
             }
         }
         private class AccessToken
@@ -99,7 +104,28 @@ namespace aspnetapp.Common
                 fileid = uploadLink.file_id,
             };
         }
-        
+
+
+        public static async Task<string> GetOpenId(string code)
+        {
+            var client = new HttpClient();
+            var url = $"https://api.weixin.qq.com/sns/jscode2session?appid={APPID}&secret={APPSECRET}&js_code={code}&grant_type=authorization_code";
+           
+            //获取文件连接
+            var req = await client.PostAsync(url, null);
+            var jsonob = JObject.Parse(await req.Content.ReadAsStringAsync());
+            var errcode = jsonob["errcode"] +"";
+            var openid = jsonob["openid"] + "";
+            var session_key = jsonob["openid"] + "";
+            var unionid = jsonob["unionid"] + "";
+            if (string.IsNullOrEmpty(openid))
+            {
+                throw new Exception("获取openid失败---errcode" + errcode); 
+            }
+
+            return openid;
+        }
+
         /// <summary>
         /// 删除视频
         /// </summary>

@@ -139,6 +139,42 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // GET api/<PatientController>/5
+        [HttpGet("getUserByRoleName/{roleName}")]
+        public async Task<ActionResult> GetUserByRoleName(string roleName)
+        {
+            try
+            {
+                var users = await _userManager.GetUsersInRoleAsync(roleName);
+                if (users.Count==0)
+                {
+                    return Ok(new Result() { code = "-1", message = "没有找到用户" });
+                }
+                var list = new List<object>();
+                foreach (var item in users)
+                {
+                    var rename =(await _userManager.GetClaimsAsync(item)).FirstOrDefault(o => o.Type == ClaimTypes.Name);
+                    list.Add(new
+                    {
+                        id = item.Id,
+                        userName = item.UserName,
+                        name = rename?.Value,
+                    });
+                }
+                return Ok(new Result()
+                {
+                    code = "1",
+                    message = "success",
+                    data = list
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         /// <summary>
         /// 注册
         /// </summary>

@@ -18,6 +18,8 @@ namespace aspnetapp
         public DbSet<Video> Videos { get; set; } = null!;
 
         public DbSet<Patient> Patients { get; set; } = null!;
+        public DbSet<PatientActivity> PatientActivitys { get; set; } = null!;
+        public DbSet<WeMessageTemplate> WeMessageTemplates { get; set; } = null!;
 
         public DbSet<User> Users { get; set; } = null!;
 
@@ -62,6 +64,8 @@ namespace aspnetapp
             modelBuilder.Entity<Patient>();
             modelBuilder.Entity<ClockIn>();
             modelBuilder.Entity<Video>();
+            modelBuilder.Entity<PatientActivity>();
+            modelBuilder.Entity<WeMessageTemplate>();
             #region 系统表
             modelBuilder.Entity<User>();
             modelBuilder.Entity<UserRole>();
