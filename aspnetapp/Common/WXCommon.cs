@@ -14,7 +14,13 @@ namespace aspnetapp.Common
     /// </summary>
     public class WXCommon
     {
-       
+        public static bool IsCloudEnv
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MYSQL_USERNAME"));
+            }
+        }
         public static string APPID
         {
             get
@@ -179,8 +185,17 @@ namespace aspnetapp.Common
         public static async Task<string> GetFileTemporaryLink(string fileid,int maxAge = 7200)
         {
             using var client = new HttpClient();
-
-            var url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
+            var url = "";
+            if (IsCloudEnv)
+            {
+                url = "https://api.weixin.qq.com/tcb/batchdownloadfile";
+            }
+            else
+            {
+                url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
+            }
+            
+            
             var flie = new
             {
                 fileid = fileid,
@@ -215,8 +230,15 @@ namespace aspnetapp.Common
         {
             using var client = new HttpClient();
 
-            var url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
-
+            var url = "";
+            if (IsCloudEnv)
+            {
+                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
+            }
+            else
+            {
+                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
+            }
             var obj = new
             {
                 touser = weMessage.OpenId,
