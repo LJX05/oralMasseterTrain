@@ -231,14 +231,8 @@ namespace aspnetapp.Common
             using var client = new HttpClient();
 
             var url = "";
-            if (IsCloudEnv)
-            {
-                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
-            }
-            else
-            {
-                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
-            }
+             url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
+         
             var obj = new
             {
                 touser = weMessage.OpenId,
