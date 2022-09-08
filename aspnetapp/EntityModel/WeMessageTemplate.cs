@@ -14,13 +14,7 @@ namespace entityModel
         /// 患者id
         /// </summary>
         public int PId { get; set; }
-        /// <summary>
-        ///  
-        /// </summary>
         public string TempId { get; set; } = string.Empty;
-        /// <summary>
-        ///  
-        /// </summary>
         public string TempName { get; set; } = string.Empty;
         public bool IS_Send { get; set; }
 

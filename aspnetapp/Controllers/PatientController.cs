@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Common;
 using entityModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -55,6 +56,7 @@ namespace aspnetapp.Controllers
             }
         }
         [HttpGet]
+        [Authorize]
         public ActionResult Get([FromQuery] PageQuery pageQuery)
         {
             try

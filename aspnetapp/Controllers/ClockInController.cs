@@ -1,5 +1,8 @@
-﻿using entityModel;
+﻿using aspnetapp.Common;
+using entityModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 public class ClockModel
@@ -169,7 +172,8 @@ namespace aspnetapp.Controllers
         /// <param name="id"></param>
         /// <param name="value"></param>
         [HttpPut("feedback/{id}")]
-        public async Task<ActionResult> FeedbackAsync(int id, [FromBody]string content)
+        public async Task<ActionResult> FeedbackAsync(int id, [FromBody] string content,
+            [FromServices] UserManager<NoteUser> userManager)
         {
             try
             {
@@ -182,6 +186,42 @@ namespace aspnetapp.Controllers
                 model.UpdatedAt = DateTime.Now;
                 _context.ClockIns.Update(model);
                 await _context.SaveChangesAsync();
+
+                var messageTemplate = _context.WeMessageTemplates
+                    .FirstOrDefault(o =>o.TempName == "咨询回复通知" && o.OpenId == model.OpenId && o.IS_Send ==false && o.CreatedAt.Date == model.CreatedAt.Date);
+                if (messageTemplate != null)
+                {
+                    var  p =  _context.Patients.FirstOrDefault(o => o.OpenId == model.OpenId);
+                    var docotr =  await userManager.FindByIdAsync(model.DoctorId);
+                    var docotrName = (await userManager.GetClaimsAsync(docotr)).FirstOrDefault(c=>c.Type == ClaimTypes.Name)?.Value;
+                    var data = new
+                    {
+                        thing6 = new
+                        {
+                            value = p?.Name
+                        },
+                        name1 = new
+                        {
+                            value = docotrName
+                        },
+                        time2 = new
+                        {
+                            value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                        },
+                        thing3 = new
+                        {
+                            value = content
+                        },
+                    };
+
+                    var send = await WXCommon.SendMessage(messageTemplate, data);
+                    if (send)
+                    {
+                        messageTemplate.IS_Send = true;
+                        _context.WeMessageTemplates.Update(messageTemplate);
+                        _context.SaveChanges();
+                    }
+                }
                 return Ok(new Result() { code = "1", message = "success" });
             }
             catch (Exception ex)

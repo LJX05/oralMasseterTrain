@@ -38,6 +38,16 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedPhoneNumber = false;//要求激活手机号才能登录，默认false
 
 });
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Cookie settings
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.SlidingExpiration = true;
+});
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 //builder.Services.AddAuthorization(options =>
 //{

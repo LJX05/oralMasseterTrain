@@ -49,11 +49,10 @@ namespace aspnetapp
                 var connstr = $"server={host};port={port};user={username};password={password};database=aspnet_demo";
                 optionsBuilder.UseMySql(connstr, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));
             }
-#if DEBUG
-
+            #if DEBUG
             var connstr1 = $"server=sh-cynosdbmysql-grp-2c5br53o.sql.tencentcdb.com;port=21585;user=ljxroot;password=Lijinxuan123;database=aspnet_demo";
-            optionsBuilder.UseMySql(connstr1, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));
-#endif
+            optionsBuilder.UseMySql(connstr1, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));         
+            #endif
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

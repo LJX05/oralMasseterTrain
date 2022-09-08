@@ -71,7 +71,7 @@ namespace aspnetapp.Controllers
                 var userName = User.Identity.Name;
                 if (string.IsNullOrEmpty(userName))
                 {
-                    return Ok(new Result() { code = "-1", message = "无用户，无需登出" });
+                    return Ok(new Result() { code = "1", message = "无用户，无需登出" });
                 }
                 await _signInManager.SignOutAsync();
                 return Ok(new Result() { code = "1", message = $"{userName} 登出成功" });

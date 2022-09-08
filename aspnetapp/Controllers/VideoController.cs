@@ -62,7 +62,6 @@ namespace aspnetapp.Controllers
         {
             try
             {
-
                 var video = _context.Videos.FirstOrDefault(o => o.Id == id);
                 if (video == null)
                 {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Formatters;
+﻿using entityModel;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -204,7 +205,36 @@ namespace aspnetapp.Common
         }
 
 
+        /// <summary>
+        /// 获取临时文件下载链接
+        /// </summary>
+        /// <param name="fileids"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<bool> SendMessage(WeMessageTemplate weMessage,object data)
+        {
+            using var client = new HttpClient();
 
+            var url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
+
+            var obj = new
+            {
+                touser = weMessage.OpenId,
+                template_id = weMessage.TempId,
+                data = data
+            };
+            using var content = new StringContent(JsonConvert.SerializeObject(obj));
+            content.Headers.Clear();
+            content.Headers.Add("Content-Type", " application/json");
+            //获取文件连接
+            var req = await client.PostAsync(url, content);
+            var result = JsonConvert.DeserializeObject<WxBaseResult>(await req.Content.ReadAsStringAsync());
+            if (result?.errcode != "0")
+            {
+                throw new Exception(result?.errmsg);
+            }
+            return true;
+        }
 
         public static string PostMultipartFormData(string url, NameValueCollection nameValueCollection, byte[] file, string fileName)
         {

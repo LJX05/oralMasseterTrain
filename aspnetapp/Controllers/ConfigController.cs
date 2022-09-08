@@ -34,12 +34,12 @@ namespace aspnetapp.Controllers
 
         private static List<(string id, string name)> Templates = new List<(string id , string name)>()
         {
-            new ("FGW8j2DYLoDO2ZKf3w_D6pOggXQYQSsQK_lJ7fEgj6g",""),
-            new ("d-zw8JJKqXqRPFxUcD-s385QWDdpaPzDAsvk82g-jbQ",""), 
+            new ("FGW8j2DYLoDO2ZKf3w_D6pOggXQYQSsQK_lJ7fEgj6g","咨询回复通知"),
+            new ("d-zw8JJKqXqRPFxUcD-s385QWDdpaPzDAsvk82g-jbQ","打卡提醒"), 
         };
 
         /// <summary>
-        /// 登录
+        /// 获取模板
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -50,6 +50,42 @@ namespace aspnetapp.Controllers
             string[] list = Templates.Select(o=>o.id).ToArray();
             return Ok(new Result() { code = "1", message = "success",data = list });
         }
+
+        /// <summary>
+        /// 获取菜单
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpGet("GetMenus")]
+        [AllowAnonymous]
+        public ActionResult GetMenus()
+        {
+            var kv = new Dictionary<string, string>
+            {
+                { "患者管理-读取", "index" },
+                { "患者管理-编辑", "edit" },
+                { "患者管理-删除", "delete" },
+                { "患者管理-增加", "add" },
+
+                { "视频管理-读取", "index" },
+                { "视频管理-编辑", "edit" },
+                { "视频管理-删除", "delete" },
+                { "视频管理-增加", "add" },
+
+                { "用户管理-读取", "index" },
+                { "用户管理-编辑", "edit" },
+                { "用户管理-删除", "delete" },
+                { "用户管理-增加", "add" },
+
+                { "角色管理-读取", "index" },
+                { "角色管理-编辑", "edit" },
+                { "角色管理-删除", "delete" },
+                { "角色管理-增加", "add" }
+            };
+
+            return Ok(new Result() { code = "1", message = "success", data = kv });
+        }
+
 
         /// <summary>
         /// 订阅
@@ -66,7 +102,11 @@ namespace aspnetapp.Controllers
                 var ws = new List<WeMessageTemplate>();
                 foreach (var item in subscribeInfos)
                 {
-                    var name = Templates.FirstOrDefault(o => o.id == item.id);
+                    if (item.result != "accept")
+                    {
+                        continue;
+                    }
+                    var tem = Templates.FirstOrDefault(o => o.id == item.id);
                     var model = new WeMessageTemplate()
                     {
                         CreatedAt = DateTime.Now,
@@ -75,7 +115,7 @@ namespace aspnetapp.Controllers
                         OpenId = openId,
                         PId = patient.Id,
                         TempId = item.id,
-                        TempName = name.name,
+                        TempName = tem.name,
                     };
                     ws.Add(model);
                 }

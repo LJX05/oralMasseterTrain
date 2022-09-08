@@ -21,8 +21,8 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var ret = await  WXCommon.GetUploadFileLink(fileName);
-                return Ok(new Result() { code = "1",data = ret});
+                var ret = await WXCommon.GetUploadFileLink(fileName);
+                return Ok(new Result() { code = "1", data = ret });
             }
             catch (Exception ex)
             {
