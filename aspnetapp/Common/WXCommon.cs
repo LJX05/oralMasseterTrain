@@ -107,7 +107,7 @@ namespace aspnetapp.Common
             var url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + ACCESS_TOKEN;
             if (IsCloudEnv)
             {
-                url = "https://api.weixin.qq.com/tcb/uploadfile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+                url = "http://api.weixin.qq.com/tcb/uploadfile";
             }
             var obj = new
             {
@@ -168,7 +168,7 @@ namespace aspnetapp.Common
                 var url = "https://api.weixin.qq.com/tcb/batchdeletefile?access_token=" + ACCESS_TOKEN;
                 if (IsCloudEnv)
                 {
-                    url = "https://api.weixin.qq.com/tcb/batchdeletefile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+                    url = "http://api.weixin.qq.com/tcb/batchdeletefile";
                 }
                 var obj = new
                 {
@@ -214,7 +214,7 @@ namespace aspnetapp.Common
             url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
             if (IsCloudEnv)
             {
-                url = "https://api.weixin.qq.com/tcb/batchdownloadfile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+                url = "http://api.weixin.qq.com/tcb/batchdownloadfile";
             }
             var flie = new
             {
@@ -270,7 +270,7 @@ namespace aspnetapp.Common
             var url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
             if (IsCloudEnv)
             {
-                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+                url = "http://api.weixin.qq.com/cgi-bin/message/subscribe/send";
             }
             var obj = new
             {
