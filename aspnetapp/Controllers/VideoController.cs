@@ -108,7 +108,7 @@ namespace aspnetapp.Controllers
                 {
                     return Ok(new Result() { code = "-1", message = "没有找到视频文件" });
                 }
-                ret.data = await WXCommon.GetFileTemporaryLink(video.FileId);
+                ret.data = await WXCommon.GetFileTemporaryLink(video.FileId, 7200,this.Request);
                 cache.Set(nameof(GetVideoUrl) + "$" + id, ret.data, TimeSpan.FromSeconds(7200));
                 return Ok(ret);
             }
@@ -179,7 +179,7 @@ namespace aspnetapp.Controllers
                 {
                     return Ok(new Result() { code = "-1", message = "没有找到该视频" });
                 }
-                var ret = await WXCommon.DeleteUploadFile(new string[] { video.FileId });
+                var ret = await WXCommon.DeleteUploadFile(new string[] { video.FileId }, this.Request);
                 if (!ret)
                 {
                     return Ok(new Result() { code = "-1", message = "删除失败" });

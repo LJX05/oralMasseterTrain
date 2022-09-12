@@ -31,8 +31,11 @@
             }
         }
 
+        public HttpRequest CurrentRequest
+        {
+            get;set;
+        }
 
-        
     }
 
 

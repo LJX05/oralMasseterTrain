@@ -60,6 +60,10 @@ namespace aspnetapp.Common
         {
             get
             {
+                if (IsCloudEnv)
+                {
+                    return "";
+                }
                 var memoryCache = WebAppContext.Instance.ServiceProvider.GetService<IMemoryCache>();
                 
                 if(memoryCache?.TryGetValue("ACCESS_TOKEN",out var _ACCESS_TOKEN) == true)
@@ -71,6 +75,8 @@ namespace aspnetapp.Common
                 return memoryCache.Get("ACCESS_TOKEN") + "";
             }
         }
+        
+
         private class AccessToken
         {
             public string access_token { get; set; } = String.Empty;
@@ -78,6 +84,7 @@ namespace aspnetapp.Common
         }
         private static async Task<string> GetAccess_token()
         {
+            
             var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={APPID}&secret={APPSECRET}";
             var httpResponse = await new HttpClient().GetAsync(url);
             var str = await httpResponse.Content.ReadAsStringAsync();
@@ -94,10 +101,14 @@ namespace aspnetapp.Common
         /// <param name="fileName"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<object> GetUploadFileLink(string fileName)
+        public static async Task<object> GetUploadFileLink(string fileName, HttpRequest currentRequest = null)
         {
             var client = new HttpClient();
             var url = "https://api.weixin.qq.com/tcb/uploadfile?access_token=" + ACCESS_TOKEN;
+            if (IsCloudEnv)
+            {
+                url = "https://api.weixin.qq.com/tcb/uploadfile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+            }
             var obj = new
             {
                 env = "prod-4gsbtrau8fb83a30",
@@ -149,12 +160,16 @@ namespace aspnetapp.Common
         /// <param name="fileids"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<bool> DeleteUploadFile(string[] fileids)
+        public static async Task<bool> DeleteUploadFile(string[] fileids,HttpRequest currentRequest = null)
         {
             using (var client = new HttpClient())
             {
 
                 var url = "https://api.weixin.qq.com/tcb/batchdeletefile?access_token=" + ACCESS_TOKEN;
+                if (IsCloudEnv)
+                {
+                    url = "https://api.weixin.qq.com/tcb/batchdeletefile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+                }
                 var obj = new
                 {
                     env = WxEnv,
@@ -192,14 +207,15 @@ namespace aspnetapp.Common
         /// <param name="fileids"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<string> GetFileTemporaryLink(string fileid,int maxAge = 7200)
+        public static async Task<string> GetFileTemporaryLink(string fileid, int maxAge = 7200, HttpRequest currentRequest = null)
         {
             using var client = new HttpClient();
             var url = "";
             url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
-          
-            
-            
+            if (IsCloudEnv)
+            {
+                url = "https://api.weixin.qq.com/tcb/batchdownloadfile?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+            }
             var flie = new
             {
                 fileid = fileid,
@@ -212,7 +228,7 @@ namespace aspnetapp.Common
             };
             using var content = new StringContent(JsonConvert.SerializeObject(obj));
             content.Headers.Clear();
-            content.Headers.Add("Content-Type", " application/json"); 
+            content.Headers.Add("Content-Type", " application/json");
             //获取文件连接
             var req = await client.PostAsync(url, content);
             var result = JsonConvert.DeserializeObject<FileTemporaryLink>(await req.Content.ReadAsStringAsync());
@@ -224,19 +240,38 @@ namespace aspnetapp.Common
         }
 
 
+        public static string GetCloudbaseAccessToken(HttpRequest currentRequest)
+        {
+            if (currentRequest != null && currentRequest.Headers.TryGetValue("X-WX-CLOUDBASE-ACCESS-TOKEN",out var result))
+            {
+                return result;
+            }
+            else
+            {
+                var str = "";
+                foreach (var item in currentRequest.Headers)
+                {
+                    str += item.Key + "=" + item.Value;
+                }
+                throw new Exception("获取失败CloudbaseAccessToken"+ str);
+            }
+        }
+
         /// <summary>
         /// 获取临时文件下载链接
         /// </summary>
         /// <param name="fileids"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<bool> SendMessage(WeMessageTemplate weMessage,object data)
+        public static async Task<bool> SendMessage(WeMessageTemplate weMessage,object data, HttpRequest currentRequest = null)
         {
             using var client = new HttpClient();
 
-            var url = "";
-             url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
-         
+            var url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + ACCESS_TOKEN;
+            if (IsCloudEnv)
+            {
+                url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?cloudbase_access_token==" + GetCloudbaseAccessToken(currentRequest);
+            }
             var obj = new
             {
                 touser = weMessage.OpenId,

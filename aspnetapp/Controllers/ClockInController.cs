@@ -222,7 +222,7 @@ namespace aspnetapp.Controllers
                         },
                     };
 
-                    var send = await WXCommon.SendMessage(messageTemplate, data);
+                    var send = await WXCommon.SendMessage(messageTemplate, data,this.Request);
                     if (send)
                     {
                         messageTemplate.IS_Send = true;

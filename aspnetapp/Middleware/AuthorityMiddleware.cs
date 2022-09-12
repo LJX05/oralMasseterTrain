@@ -13,6 +13,8 @@
         {
             var cultureQuery = context.Request.Query["culture"];
             // Call the next delegate/middleware in the pipeline.
+            
+
             await _next(context);
         }
     }
