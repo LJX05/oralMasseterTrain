@@ -120,7 +120,7 @@ namespace aspnetapp.Common
             }
             var obj = new
             {
-                env = "prod-4gsbtrau8fb83a30",
+                env =WxEnv,
                 path = "Video/" + fileName
             };
             var content = new StringContent(JsonConvert.SerializeObject(obj));
