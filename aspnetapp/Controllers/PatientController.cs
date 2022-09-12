@@ -41,7 +41,20 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var openid = await WXCommon.GetOpenId(code);
+                var openid = "";
+                if (WXCommon.IsCloudEnv)
+                {
+                     openid = this.Request.Headers["x-wx-openid"];
+                    if (string.IsNullOrEmpty(openid))
+                    {
+                        throw new Exception("云托管环境获取openid失败");
+                    }
+                }
+                else
+                {
+                    openid = await WXCommon.GetOpenId(code);
+                }
+                
 
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openid);
                 if (patient == null)
