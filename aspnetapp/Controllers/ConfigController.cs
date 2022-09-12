@@ -58,8 +58,11 @@ namespace aspnetapp.Controllers
         [HttpGet("GetENVID")]
         public ActionResult GetENVID()
         {
-            string envid = WXCommon.WxEnv;
-            return Ok(new Result() { code = "1", message = "success", data = envid });
+            return Ok(new Result() { code = "1", message = "success", data = new
+            {
+                envId = WXCommon.WxEnv,
+                envName = WXCommon.CloudEnvName
+            } });
         }
 
         /// <summary>

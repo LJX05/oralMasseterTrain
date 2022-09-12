@@ -114,6 +114,8 @@ namespace aspnetapp.Controllers
                     return Ok(new Result() { code = "-1", message = "没有此患者" });
                 }
                 var clockIn = _context.ClockIns.FirstOrDefault(o => o.OpenId == clockModel.OpenId && o.CreatedAt.Date == DateTime.Now.Date);
+
+                
                 var video = new Video()
                 {
                     Name = clockModel.DailyVideoFileName,
@@ -140,6 +142,7 @@ namespace aspnetapp.Controllers
                        var  entityEntry = await _context.ClockIns.AddAsync(clockIn);
                        video.ClockId = entityEntry.Entity.Id;
                        patient.LastCheckInId = entityEntry.Entity.Id;
+                       await _context.Videos.AddAsync(video);
                     }
                     else
                     {
@@ -147,16 +150,32 @@ namespace aspnetapp.Controllers
                         clockIn.CreatedAt = DateTime.Now;
                         clockIn.UpdatedAt = DateTime.Now;
                         patient.LastCheckInId = clockIn.Id;
+                        var video1 = clockIn.Videos.FirstOrDefault(v => v.Name == video.Name && v.CreatedAt.Date == video.CreatedAt.Date);
+                        if (video1 != null)
+                        {
+                            await WXCommon.DeleteUploadFile(new string[] { video1.FileId });
+                            video1.UpdatedAt = DateTime.Now;
+                            video1.FileId = clockModel.DailyVideoFileId;
+                            _context.Videos.Update(video1);
+                        }
+                        else
+                        {
+                          await  _context.Videos.AddAsync(video);
+                        }
                         _context.ClockIns.Update(clockIn);
+                        
                     }
                     
-                    var entity = await _context.Videos.AddAsync(video);
+                    
                     await _context.SaveChangesAsync();
 
                     patient.LastCheckInTime = DateTime.Now;
                     _context.Patients.Update(patient);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
+
+
+
                     return Ok(new Result() { code = "1", message = "success" });
 
                 }

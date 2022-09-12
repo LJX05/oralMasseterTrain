@@ -15,6 +15,8 @@ public class PatientModel
 
     public string sex { get; set; } = string.Empty;
 
+    public DateTime? birthDate{ get; set; }
+    
     public string phoneNumber { get; set; } = string.Empty;
 
     public string doctorId { get; set; } = string.Empty;
@@ -61,7 +63,12 @@ namespace aspnetapp.Controllers
                 {
                     return Ok(new Result() { code = "-10", message = "没有此微信用户,请先注册", data = openid });
                 }
-                return Ok(new Result() { code = "1", message = "sucess", data = openid });
+                return Ok(new Result()
+                {
+                    code = "1",
+                    message = "sucess",
+                    data = openid
+                });
             }
             catch (Exception ex)
             {
@@ -218,6 +225,7 @@ namespace aspnetapp.Controllers
                     DoctorId = model.doctorId,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
+                    BirthDate = model.birthDate,
                     Name = model.name,
                     Sex = model.sex,
                     OpenId = model.openId

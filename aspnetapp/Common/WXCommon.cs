@@ -21,6 +21,15 @@ namespace aspnetapp.Common
                 return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MYSQL_USERNAME"));
             }
         }
+
+        public static string CloudEnvName
+        {
+            get
+            {
+                var str = Environment.GetEnvironmentVariable("CloudEnvName");
+                return string.IsNullOrEmpty(str)? "dotnet-93az" : str;
+            }
+        }
         public static string APPID
         {
             get
