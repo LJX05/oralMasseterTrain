@@ -38,7 +38,7 @@ namespace entityModel
         /// <summary>
         /// 最后一次签到记录
         /// </summary>
-        public virtual ClockIn? LastCheckIn { get; set; } 
+        public virtual ClockIn LastCheckIn { get; set; } 
         /// <summary>
         /// 教学表
         /// </summary>

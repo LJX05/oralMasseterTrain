@@ -66,7 +66,8 @@ namespace aspnetapp
             modelBuilder.Entity<Patient>(entityModel =>
             {
                 entityModel.HasMany(pv => pv.PToVList).WithOne().HasForeignKey(o => o.PId);
-                entityModel.HasOne(pv => pv.LastCheckIn).WithMany().HasForeignKey(o => o.LastCheckInId);
+                entityModel.HasOne(pv => pv.LastCheckIn ).WithMany()
+                .HasForeignKey(o => o.LastCheckInId);
             });
             modelBuilder.Entity<PatientToTeachVideo>()
                 .HasOne(pv => pv.TVideo)
