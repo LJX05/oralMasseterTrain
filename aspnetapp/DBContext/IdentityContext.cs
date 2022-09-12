@@ -111,14 +111,15 @@ namespace aspnetapp
         private static async Task CreateDefaultUserAndRole(UserManager<NoteUser> userManager, RoleManager<NoteRole> roleManager)
         {
             string roleAdmin = "系统管理员";
-            await CreateDefaultRole(roleManager, roleAdmin);
+            await CreateDefaultRole(roleManager, roleAdmin,"admin");
+            await CreateDefaultRole(roleManager, "医生", "doctor");
             var user = await CreateDefaultUser(userManager);
             await AddDefaultRoleToDefaultUser(userManager, roleAdmin, user);
         }
 
-        private static async Task CreateDefaultRole(RoleManager<NoteRole> roleManager, string roleName)
+        private static async Task CreateDefaultRole(RoleManager<NoteRole> roleManager, string roleName,string roleCode)
         {
-            await roleManager.CreateAsync(new NoteRole() { IsPreset = true , Name = roleName,_ut_ =DateTime.Now,_ct_=DateTime.Now });
+            await roleManager.CreateAsync(new NoteRole() { IsPreset = true , Name = roleName, Code= roleCode,  _ut_ =DateTime.Now,_ct_=DateTime.Now });
         }
 
         private static async Task<NoteUser> CreateDefaultUser(UserManager<NoteUser> userManager)
