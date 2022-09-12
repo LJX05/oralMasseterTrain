@@ -211,7 +211,7 @@ namespace aspnetapp.Controllers
 
         // POST api/<PatientController>
         [HttpPost("register")]
-        public async Task<ActionResult> Post(PatientModel model)
+        public async Task<ActionResult> Post(PatientModel model, [FromServices] UserManager<NoteUser> userManger)
         {
             try
             {
@@ -219,6 +219,11 @@ namespace aspnetapp.Controllers
                 if (patient1 != null)
                 {
                     return Ok(new Result() { code = "-1", message = "该患者已登记无需登记" });
+                }
+                var user = userManger.FindByIdAsync(model.doctorId);
+                if (user == null)
+                {
+                    return Ok(new Result() { code = "-1", message = "未找到选择的医生" });
                 }
                 var patient = new Patient()
                 {
