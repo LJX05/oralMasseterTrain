@@ -1,4 +1,7 @@
 # https://hub.docker.com/_/microsoft-dotnet
+
+FROM centos as centos  COPY --from=centos  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime RUN echo "Asia/Shanghai" > /etc/timezone
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositories
 WORKDIR /source
