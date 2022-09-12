@@ -139,7 +139,8 @@ namespace aspnetapp.Controllers
                             OpenId = clockModel.OpenId,
                             DoctorId = patient.DoctorId
                         };
-                       var  entityEntry = await _context.ClockIns.AddAsync(clockIn);
+                       var entityEntry = await _context.ClockIns.AddAsync(clockIn);
+                       await _context.SaveChangesAsync();
                        video.ClockId = entityEntry.Entity.Id;
                        patient.LastCheckInId = entityEntry.Entity.Id;
                        await _context.Videos.AddAsync(video);
@@ -167,7 +168,7 @@ namespace aspnetapp.Controllers
                     }
                     
                     
-                    await _context.SaveChangesAsync();
+                   
 
                     patient.LastCheckInTime = DateTime.Now;
                     _context.Patients.Update(patient);
@@ -184,7 +185,6 @@ namespace aspnetapp.Controllers
                     transaction.Rollback();
                     return Ok(new Result() { code = "-1", message = e.Message });
                 }
-
                 return Ok(new Result() { code = "1", message = "success" });
             }
             catch (Exception ex)

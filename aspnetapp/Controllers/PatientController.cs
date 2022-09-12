@@ -231,6 +231,8 @@ namespace aspnetapp.Controllers
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     BirthDate = model.birthDate,
+                    Telephone = model.phoneNumber,
+                    LastCheckInId =-1,
                     Name = model.name,
                     Sex = model.sex,
                     OpenId = model.openId
