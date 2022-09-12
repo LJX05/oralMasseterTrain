@@ -24,7 +24,10 @@ namespace entityModel
         /// </summary>
         public DateTime? BirthDate { get; set; }
 
-
+        /// <summary>
+        /// 电话 
+        /// </summary>
+        public string Telephone { get; set; } = string.Empty;
         public string DoctorId { get; set; } = string.Empty;
         /// <summary>
         /// 最后一次签到时间
@@ -35,7 +38,7 @@ namespace entityModel
         /// <summary>
         /// 最后一次签到记录
         /// </summary>
-        public virtual ClockIn LastCheckIn { get; set; } 
+        public virtual ClockIn? LastCheckIn { get; set; } 
         /// <summary>
         /// 教学表
         /// </summary>
@@ -58,12 +61,12 @@ namespace entityModel
         /// <summary>
         /// 患者id
         /// </summary>
-        public int PId { get; set; }
+        public int? PId { get; set; }
 
         /// <summary>
         /// 教学视频id
         /// </summary>
-        public int TVId { get; set; }
+        public int? TVId { get; set; }
         /// <summary>
         /// 教学视频
         /// </summary>
