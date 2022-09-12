@@ -30,11 +30,12 @@ namespace entityModel
         /// <summary>
         /// 教学视频
         /// </summary>
-        public int TeachVideoId { get; set; }
-        /// <summary>
-        /// 日常视频
-        /// </summary>
-        public int DailyVideoId { get; set; }
+        public string TeachVideoId { get; set; } = string.Empty;
+
+
+
+        public virtual IList<Video> Videos { get; set; }
+
         /// <summary>
         /// 签到日期
         /// </summary>

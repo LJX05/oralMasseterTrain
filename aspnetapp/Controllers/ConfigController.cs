@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using entityModel;
+using aspnetapp.Common;
 
 public class SubscribeInfo
 {
@@ -49,6 +50,16 @@ namespace aspnetapp.Controllers
         {
             string[] list = Templates.Select(o=>o.id).ToArray();
             return Ok(new Result() { code = "1", message = "success",data = list });
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetENVID")]
+        public ActionResult GetENVID()
+        {
+            string envid = WXCommon.WxEnv;
+            return Ok(new Result() { code = "1", message = "success", data = envid });
         }
 
         /// <summary>

@@ -74,7 +74,7 @@ namespace aspnetapp.Controllers
                     {
                         cid = _context.ClockIns.FirstOrDefault(c => c.OpenId == o.OpenId && DateTime.Now.Date == c.CreatedAt.Date)?.Id;
                     }
-                    var teachName = _context.Videos.FirstOrDefault(v => v.Id == o.TeachVideoId.GetValueOrDefault())?.Name;
+                    var teachName = o.PToVList.Count > 0 ? string.Join(",", o.PToVList.Select(pt => pt.TVideo.Name)) : "未设置";
                     return new
                     {
                         o.Id,
@@ -84,8 +84,13 @@ namespace aspnetapp.Controllers
                         o.OpenId,
                         o.UpdatedAt,
                         SameDayIsCheck = islast ? '是' : '否',
-                        LastCheckInVideoId = islast ? o.LastCheckInVideoId : null,
-                        teachName = teachName ?? "未设置",
+                        LastCheckInVideos = islast ? o.LastCheckIn?.Videos
+                        .Select(v => new
+                        {
+                            id = v.Id,
+                            name = v.Name,
+                        }) : null,
+                        teachName = teachName,
                         todayClockInId = cid,//当天签到
                     };
                 });
@@ -134,7 +139,11 @@ namespace aspnetapp.Controllers
                         patient.Name,
                         patient.Sex,
                         doctorName,
-                        patient.TeachVideoId
+                        TeachVideos = patient.PToVList.Select(o => new
+                        {
+                            id = o.TVId,
+                            name =o.TVideo.Name
+                        })
                     }
                 });
             }
@@ -161,7 +170,11 @@ namespace aspnetapp.Controllers
                     message = "success",
                     data = new
                     {
-                        setTeachVideoId = patient.TeachVideoId,
+                        setTeachVideos = patient.PToVList.Select(o => new
+                        {
+                            name = o.TVideo.Name,
+                            id = o.TVId,
+                        }),
                         activities = activities.Select(a => new
                         {
                             timestamp = a.CreatedAt,
@@ -212,7 +225,7 @@ namespace aspnetapp.Controllers
         /// <param name="id"></param>
         /// <param name="value"></param>
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] int tid)
+        public async Task<ActionResult> Put(int id, [FromBody] int[] tid)
         {
             try
             {
@@ -221,8 +234,8 @@ namespace aspnetapp.Controllers
                 {
                     return Ok(new Result() { code = "-1", message = "该患者未登记" });
                 }
-                var tvideo = _context.Videos.FirstOrDefault(o => o.Id == tid);
-                if (tvideo == null)
+                var tvideos = _context.Videos.Where(o => tid.Contains(o.Id));
+                if (tvideos.Count() == 0)
                 {
                     return Ok(new Result() { code = "-1", message = "未找到该视频" });
                 }
@@ -233,14 +246,28 @@ namespace aspnetapp.Controllers
                     UpdatedAt = DateTime.Now,
                     OpenId = patient.OpenId,
                     PId = patient.Id,
-                    VideoId = tvideo.Id,
-                    Content = $"设置教学视频{tvideo.Name}",
+                    VideoIds = string.Join(",", tvideos.Select(o => o.Id)),
+                    Content = $"设置教学视频{string.Join(",", tvideos.Select(o => o.Name))}"
                 };
                 using var transaction = await _context.Database.BeginTransactionAsync();
-                patient.TeachVideoId = tid;
+
                 patient.UpdatedAt = DateTime.Now;
                 try
                 {
+                    foreach (var item in patient.PToVList)
+                    {
+                        _context.PatientToTeachVideos.Remove(item);
+                    }
+                    foreach (var item in tvideos)
+                    {
+                        var toTeachVideo = new PatientToTeachVideo()
+                        {
+                            TVId = item.Id,
+                            PId = patient.Id,
+                            OpenId = patient.OpenId
+                        };
+                        _context.PatientToTeachVideos.Add(toTeachVideo);
+                    }
                     _context.Patients.Update(patient);
                     await _context.PatientActivitys.AddAsync(activity);
                     await _context.SaveChangesAsync();

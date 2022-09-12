@@ -19,20 +19,55 @@ namespace entityModel
 
         public string Sex { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 出生日期 
+        /// </summary>
+        public DateTime? BirthDate { get; set; }
+
+
         public string DoctorId { get; set; } = string.Empty;
         /// <summary>
         /// 最后一次签到时间
         /// </summary>
         public DateTime? LastCheckInTime { get; set; }
-        public int? LastCheckInVideoId { get; set; }
+
+        public int? LastCheckInId { get; set; }
         /// <summary>
-        ///当前视频Id
+        /// 最后一次签到记录
         /// </summary>
-        public int? TeachVideoId { get; set; }
+        public virtual ClockIn LastCheckIn { get; set; } 
+        /// <summary>
+        /// 教学表
+        /// </summary>
+        public virtual IList<PatientToTeachVideo> PToVList{ get; set; }
 
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
+    }
+    /// <summary>
+    /// 患者教学视频记录表
+    /// </summary>
+    [Table("PatientToTeachVideo")]
+    public class PatientToTeachVideo
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public string OpenId { get; set; } = string.Empty;
+        /// <summary>
+        /// 患者id
+        /// </summary>
+        public int PId { get; set; }
+
+        /// <summary>
+        /// 教学视频id
+        /// </summary>
+        public int TVId { get; set; }
+        /// <summary>
+        /// 教学视频
+        /// </summary>
+        public virtual Video TVideo { get; set; } 
     }
 
 
@@ -53,7 +88,8 @@ namespace entityModel
         /// <summary>
         /// 视频id
         /// </summary>
-        public int VideoId { get; set; } 
+        public string VideoIds { get; set; } = string.Empty;
+        
         /// <summary>
         /// 记录内容
         /// </summary>

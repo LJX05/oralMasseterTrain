@@ -41,7 +41,13 @@ namespace aspnetapp.Common
         public static string WxEnv
         {
             get
-            {   //这个一定要妥善保存，
+            {
+                var id = Environment.GetEnvironmentVariable("WX_CloudEnvID");
+                if (!string.IsNullOrEmpty(id))
+                {
+                    return id;
+                }
+                //这个一定要妥善保存，
                 return "prod-4gsbtrau8fb83a30";
             }
         }
@@ -68,7 +74,7 @@ namespace aspnetapp.Common
         }
         private static async Task<string> GetAccess_token()
         {
-            var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={APPID}&secret={APPSECRET} ";
+            var url = $"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={APPID}&secret={APPSECRET}";
             var httpResponse = await new HttpClient().GetAsync(url);
             var str = await httpResponse.Content.ReadAsStringAsync();
             var accessToken = JsonConvert.DeserializeObject<AccessToken>(str);
@@ -186,14 +192,8 @@ namespace aspnetapp.Common
         {
             using var client = new HttpClient();
             var url = "";
-            if (IsCloudEnv)
-            {
-                url = "https://api.weixin.qq.com/tcb/batchdownloadfile";
-            }
-            else
-            {
-                url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
-            }
+            url = "https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=" + ACCESS_TOKEN;
+          
             
             
             var flie = new

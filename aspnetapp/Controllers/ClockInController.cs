@@ -2,6 +2,7 @@
 using entityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,13 +13,12 @@ public class ClockModel
     /// </summary>
     public string OpenId { get; set; }
     /// <summary>
-    /// 教学视频
-    /// </summary>
-    public int TeachVideoId { get; set; }
-    /// <summary>
     /// 日常视频
     /// </summary>
     public string DailyVideoFileId { get; set; } = string.Empty;
+
+
+    public string DailyVideoFileName { get; set; } = string.Empty;
 }
 namespace aspnetapp.Controllers
 {
@@ -77,12 +77,17 @@ namespace aspnetapp.Controllers
                 {
                     code = "1",
                     message = "success",
+                   
                     data = clocks.Select(o => new
                     {
                         o.Id,
-                        videoId = o.DailyVideoId,//视频
+                        o.FeedbackComments,
                         date = o.CreatedAt.ToString("yyyy-MM-dd"), //时间
-                        date1 = o.CreatedAt.ToString("yyyy/MM/dd"), //时间
+                        videos = o.Videos.Select(v=>new
+                        {
+                            id = v.Id,
+                            name = v.Name
+                        })
                     })
                 });
             }
@@ -111,42 +116,45 @@ namespace aspnetapp.Controllers
                 var clockIn = _context.ClockIns.FirstOrDefault(o => o.OpenId == clockModel.OpenId && o.CreatedAt.Date == DateTime.Now.Date);
                 var video = new Video()
                 {
-                    Name = patient.Name + DateTime.Now.ToString("yyyyMMddHHmmss") + "每日打卡",
+                    Name = clockModel.DailyVideoFileName,
                     FileId = clockModel.DailyVideoFileId,
                     CreatedAt = DateTime.Now,
-                    Describe = "每日打卡视频" + patient.Name,
+                    Describe = patient.Name + DateTime.Now.ToString("yyyyMMddHHmmss") + "每日打卡",
                     UpdatedAt = DateTime.Now,
                     Type = "打卡视频",
                     UploaderId = patient.Id
                 };
-
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    var entity = await _context.Videos.AddAsync(video);
-                    await _context.SaveChangesAsync();
+                    
                     if (clockIn == null)
                     {
                         clockIn = new ClockIn()
                         {
                             CreatedAt = DateTime.Now,
-                            DailyVideoId = entity.Entity.Id,
-                            TeachVideoId = patient.TeachVideoId.GetValueOrDefault(),
+                            TeachVideoId = string.Join(",",patient.PToVList.Select(pt=>pt.TVId)),
                             OpenId = clockModel.OpenId,
                             DoctorId = patient.DoctorId
                         };
-                        await _context.ClockIns.AddAsync(clockIn);
+                       var  entityEntry = await _context.ClockIns.AddAsync(clockIn);
+                       video.ClockId = entityEntry.Entity.Id;
+                       patient.LastCheckInId = entityEntry.Entity.Id;
                     }
                     else
                     {
+                        video.ClockId = clockIn.Id;
                         clockIn.CreatedAt = DateTime.Now;
                         clockIn.UpdatedAt = DateTime.Now;
-                        clockIn.DailyVideoId = entity.Entity.Id;
+                        patient.LastCheckInId = clockIn.Id;
                         _context.ClockIns.Update(clockIn);
                     }
+                    
+                    var entity = await _context.Videos.AddAsync(video);
+                    await _context.SaveChangesAsync();
 
-                    patient.LastCheckInVideoId = entity.Entity.Id;
                     patient.LastCheckInTime = DateTime.Now;
+                    _context.Patients.Update(patient);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return Ok(new Result() { code = "1", message = "success" });
