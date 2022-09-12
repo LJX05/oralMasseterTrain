@@ -25,14 +25,18 @@ namespace aspnetapp.Common
         {
             get
             {
-                return "wx5c9713ef9c61c63b";
+                var _APPID = Environment.GetEnvironmentVariable("APPID");
+                return !string.IsNullOrWhiteSpace(_APPID)? _APPID :  "wx5c9713ef9c61c63b";
             }
         }
         public static string APPSECRET
         {
             get
-            {   //这个一定要妥善保存，
-                return "aefaea3c58768b754c0d1eb51f8f74de";
+            {
+                var _APPSECRET = Environment.GetEnvironmentVariable("APPSECRET");
+
+                //这个一定要妥善保存，
+                return !string.IsNullOrEmpty(_APPSECRET) ? _APPSECRET : "aefaea3c58768b754c0d1eb51f8f74de";
             }
         }
         /// <summary>
