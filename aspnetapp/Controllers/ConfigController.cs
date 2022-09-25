@@ -10,7 +10,7 @@ using aspnetapp;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using entityModel;
+using EntityModel;
 using aspnetapp.Common;
 
 public class SubscribeInfo
@@ -24,11 +24,11 @@ namespace aspnetapp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ConfigController : ControllerBase
+    public class ConfigController : BaseController
     {
         private readonly BusinessContext _context;
 
-        public ConfigController(BusinessContext context)
+        public ConfigController(ILogger<ConfigController> logger, BusinessContext context):base(logger)
         {
             _context = context;
         }
@@ -49,7 +49,7 @@ namespace aspnetapp.Controllers
         public  ActionResult GetTemplateIds()
         {
             string[] list = Templates.Select(o=>o.id).ToArray();
-            return Ok(new Result() { code = "1", message = "success",data = list });
+            return Ok(new SimpleResult() { code = "1", message = "success",data = list });
         }
         /// <summary>
         /// 
@@ -58,7 +58,7 @@ namespace aspnetapp.Controllers
         [HttpGet("GetENVID")]
         public ActionResult GetENVID()
         {
-            return Ok(new Result() { code = "1", message = "success", data = new
+            return Ok(new SimpleResult() { code = "1", message = "success", data = new
             {
                 envId = WXCommon.WxEnv,
                 envName = WXCommon.CloudEnvName
@@ -97,7 +97,7 @@ namespace aspnetapp.Controllers
                 { "角色管理-增加", "add" }
             };
 
-            return Ok(new Result() { code = "1", message = "success", data = kv });
+            return Ok(new SimpleResult() { code = "1", message = "success", data = kv });
         }
 
 
@@ -135,10 +135,11 @@ namespace aspnetapp.Controllers
                 }
                 await _context.WeMessageTemplates.AddRangeAsync(ws);
                 await _context.SaveChangesAsync();
-                return Ok(new Result() { code = "1", message = "success" });
+                return Ok(new SimpleResult() { code = "1", message = "success" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

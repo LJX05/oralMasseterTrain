@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using entityModel;
+using EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +30,7 @@ namespace aspnetapp
     public class NoteRole : IdentityRole
     {
         public bool IsPreset { get; set; }
-
         public string Mark { get; set; } = string.Empty;
-
         public string Code { get; set; } = string.Empty;
         /// <summary>
         /// 创建时间
@@ -52,19 +50,16 @@ namespace aspnetapp
         public string _uuid_ { get; set; } = string.Empty;
     }
 
-
     public partial class IdentityContext : IdentityDbContext<NoteUser, NoteRole, string>
     {
         public IdentityContext()
         {
         }
 
-
         public IdentityContext(DbContextOptions<IdentityContext> options)
             : base(options)
         {
         }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -79,7 +74,8 @@ namespace aspnetapp
             }
             #if DEBUG
 
-            var connstr1 = $"server=sh-cynosdbmysql-grp-2c5br53o.sql.tencentcdb.com;port=21585;user=ljxroot;password=Lijinxuan123;database=aspnet_demo";
+            //var connstr1 = $"server=sh-cynosdbmysql-grp-2c5br53o.sql.tencentcdb.com;port=21585;user=ljxroot;password=Lijinxuan123;database=aspnet_demo";
+            var connstr1 = $"server=sh-cynosdbmysql-grp-81t6sb3w.sql.tencentcdb.com;port=26148;user=root;password=pg8xZueU;database=aspnet_demo";
             optionsBuilder.UseMySql(connstr1, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));
             #endif
         }
@@ -94,20 +90,15 @@ namespace aspnetapp
 
     public class InitIdentityDB
     {
-
         public static async Task Initialize(IdentityContext context, UserManager<NoteUser> userManager, RoleManager<NoteRole> roleManager)
         {
             context.Database.EnsureCreated();
-
             if (context.Users.Any())
             {
                 return;   // DB has been seeded  
             }
-
             await CreateDefaultUserAndRole(userManager, roleManager);
-
         }
-
         private static async Task CreateDefaultUserAndRole(UserManager<NoteUser> userManager, RoleManager<NoteRole> roleManager)
         {
             string roleAdmin = "系统管理员";
@@ -116,22 +107,17 @@ namespace aspnetapp
             var user = await CreateDefaultUser(userManager);
             await AddDefaultRoleToDefaultUser(userManager, roleAdmin, user);
         }
-
         private static async Task CreateDefaultRole(RoleManager<NoteRole> roleManager, string roleName,string roleCode)
         {
             await roleManager.CreateAsync(new NoteRole() { IsPreset = true , Name = roleName, Code= roleCode,  _ut_ =DateTime.Now,_ct_=DateTime.Now });
         }
-
         private static async Task<NoteUser> CreateDefaultUser(UserManager<NoteUser> userManager)
         {
             var user = new NoteUser { UserName = "admin",_ct_ = DateTime.Now,_ut_=DateTime.Now };
-
             var  result = await userManager.CreateAsync(user, "Abc@123");
-
             var createdUser = await userManager.FindByNameAsync("admin");
             return createdUser;
         }
-
         private static async Task AddDefaultRoleToDefaultUser(UserManager<NoteUser> userManager, string role, NoteUser user)
         {
             await userManager.AddToRoleAsync(user, role);

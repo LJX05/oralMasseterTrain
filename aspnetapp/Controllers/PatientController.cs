@@ -1,5 +1,5 @@
 ﻿using aspnetapp.Common;
-using entityModel;
+using EntityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -29,11 +29,12 @@ namespace aspnetapp.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class PatientController : ControllerBase
+    public class PatientController : BaseController
     {
         private readonly BusinessContext _context;
 
-        public PatientController(BusinessContext context)
+        public PatientController(ILogger<PatientController>logger,BusinessContext context)
+            :base(logger)
         {
             _context = context;
         }
@@ -61,9 +62,9 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openid);
                 if (patient == null)
                 {
-                    return Ok(new Result() { code = "-10", message = "没有此微信用户,请先注册", data = openid });
+                    return Ok(new SimpleResult() { code = "-10", message = "没有此微信用户,请先注册", data = openid });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "sucess",
@@ -72,6 +73,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -114,7 +116,7 @@ namespace aspnetapp.Controllers
                         todayClockInId = cid,//当天签到
                     };
                 });
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -127,6 +129,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -139,7 +142,7 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openId);
                 if (patient == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有此微信用户,请先注册" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有此微信用户,请先注册" });
                 }
                 var doctor = (await userManger.GetUsersInRoleAsync("医生")).FirstOrDefault(o => o.Id == patient.DoctorId);
                 var doctorName = "--";
@@ -149,7 +152,7 @@ namespace aspnetapp.Controllers
                 }
 
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -169,6 +172,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -181,10 +185,10 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.Id == id);
                 if (patient == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有此微信用户,请先注册" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有此微信用户,请先注册" });
                 }
                 var activities = _context.PatientActivitys.Where(o => o.PId == patient.Id).ToList();
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -205,6 +209,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -218,12 +223,12 @@ namespace aspnetapp.Controllers
                 var patient1 = _context.Patients.FirstOrDefault(o => o.OpenId == model.openId);
                 if (patient1 != null)
                 {
-                    return Ok(new Result() { code = "-1", message = "该患者已登记无需登记" });
+                    return Ok(new SimpleResult() { code = "-1", message = "该患者已登记无需登记" });
                 }
                 var user = userManger.FindByIdAsync(model.doctorId);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "未找到选择的医生" });
+                    return Ok(new SimpleResult() { code = "-1", message = "未找到选择的医生" });
                 }
                 var patient = new Patient()
                 {
@@ -239,10 +244,11 @@ namespace aspnetapp.Controllers
                 };
                 await _context.Patients.AddAsync(patient);
                 await _context.SaveChangesAsync();
-                return Ok(new Result() { code = "1", message = "success" });
+                return Ok(new SimpleResult() { code = "1", message = "success" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -260,12 +266,12 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.FirstOrDefault(o => o.Id == id);
                 if (patient == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "该患者未登记" });
+                    return Ok(new SimpleResult() { code = "-1", message = "该患者未登记" });
                 }
                 var tvideos = _context.Videos.Where(o => tid.Contains(o.Id));
                 if (tvideos.Count() == 0)
                 {
-                    return Ok(new Result() { code = "-1", message = "未找到该视频" });
+                    return Ok(new SimpleResult() { code = "-1", message = "未找到该视频" });
                 }
                 //插入一天记录
                 var activity = new PatientActivity()
@@ -300,18 +306,18 @@ namespace aspnetapp.Controllers
                     await _context.PatientActivitys.AddAsync(activity);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return Ok(new Result() { code = "1", message = "success" });
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return Ok(new Result() { code = "-1", message = ex.Message });
+                    return Ok(new SimpleResult() { code = "-1", message = ex.Message });
                 }
 
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
-
+//»’÷æ
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 // Add services to the container.
 builder.Services.AddDbContext<BusinessContext>();
 builder.Services.AddDbContext<IdentityContext>();
@@ -42,10 +44,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     // Cookie settings
     options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 
-    options.LoginPath = "/Identity/Account/Login";
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.LoginPath = new PathString("/login");
+    //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.SlidingExpiration = true;
 });
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace entityModel
+namespace EntityModel
 {
     [Table("We_MessageTemplate")]
     public class WeMessageTemplate

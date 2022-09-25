@@ -10,6 +10,7 @@ using aspnetapp;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 public class UserModel
 {
@@ -24,12 +25,13 @@ namespace aspnetapp.Controllers
 {
     [Route("api/account")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController : BaseController
     {
         private readonly UserManager<NoteUser> _userManager;
 
         private readonly SignInManager<NoteUser> _signInManager;
-        public AccountController(UserManager<NoteUser> userManager, SignInManager<NoteUser> signInManager)
+        public AccountController(ILogger<AccountController> logger,UserManager<NoteUser> userManager, SignInManager<NoteUser> signInManager)
+            :base(logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -48,15 +50,15 @@ namespace aspnetapp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.username, model.password, model.rememberMe, false);
                 if (!result.Succeeded)
                 {
-                    return Ok(new Result() { code = "-1", message = "用户名或者密码错误" });
+                    return Ok(new SimpleResult() { code = "-1", message = "用户名或者密码错误" });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError(ex.Message);
+                return Ok(new SimpleResult() { code = "-1", message = ex.Message });
             }
-            return Ok(new Result() { code = "1", message = "success" });
+            return Ok(new SimpleResult() { code = "1", message = "success" });
         }
         /// <summary>
         /// 登出
@@ -71,14 +73,15 @@ namespace aspnetapp.Controllers
                 var userName = User.Identity.Name;
                 if (string.IsNullOrEmpty(userName))
                 {
-                    return Ok(new Result() { code = "1", message = "无用户，无需登出" });
+                    return Ok(new SimpleResult() { code = "1", message = "无用户，无需登出" });
                 }
                 await _signInManager.SignOutAsync();
-                return Ok(new Result() { code = "1", message = $"{userName} 登出成功" });
+                return Ok(new SimpleResult() { code = "1", message = $"{userName} 登出成功" });
             }
             catch (Exception ex)
             {
-                return Ok(new Result() { code = "-1", message = "登出失败---" + ex.Message });
+                _logger.LogError(ex.Message);
+                return Ok(new SimpleResult() { code = "-1", message = "登出失败---" + ex.Message });
             }
         }
         

@@ -1,4 +1,4 @@
-﻿using entityModel;
+﻿using EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Swagger;
@@ -28,7 +28,7 @@ namespace aspnetapp.Controllers
             {
                var result = swaggerProvider.GetSwagger("v1");
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",

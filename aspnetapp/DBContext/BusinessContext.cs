@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using entityModel;
+using EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -51,7 +51,7 @@ namespace aspnetapp
                 optionsBuilder.UseLazyLoadingProxies().UseMySql(connstr, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));
             }
 #if DEBUG
-            var connstr1 = $"server=sh-cynosdbmysql-grp-2c5br53o.sql.tencentcdb.com;port=21585;user=ljxroot;password=Lijinxuan123;database=aspnet_demo";
+            var connstr1 = $"server=sh-cynosdbmysql-grp-81t6sb3w.sql.tencentcdb.com;port=26148;user=root;password=pg8xZueU;database=aspnet_demo";
             optionsBuilder.UseLazyLoadingProxies()
                 .UseMySql(connstr1, Microsoft.EntityFrameworkCore.ServerVersion.Parse("5.7.18-mysql"));
 #endif

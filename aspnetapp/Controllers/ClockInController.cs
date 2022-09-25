@@ -1,5 +1,5 @@
 ﻿using aspnetapp.Common;
-using entityModel;
+using EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,11 +27,11 @@ namespace aspnetapp.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class ClockInController : ControllerBase
+    public class ClockInController : BaseController
     {
         private readonly BusinessContext _context;
-
-        public ClockInController(BusinessContext context)
+        public ClockInController(ILogger<ClockInController> logger,BusinessContext context)
+            :base(logger)
         {
             _context = context;
         }
@@ -46,7 +46,7 @@ namespace aspnetapp.Controllers
                     .Skip(pageQuery.pageSize * pageQuery.pageIndex)
                     .Take(pageQuery.pageSize)
                     .ToList();
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -62,6 +62,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -73,7 +74,7 @@ namespace aspnetapp.Controllers
             {
                 var clocks =  _context.ClockIns.Where(b => b.OpenId  == openid);
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -93,6 +94,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -111,11 +113,10 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.FirstOrDefault(o => o.OpenId == clockModel.OpenId);
                 if (patient == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有此患者" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有此患者" });
                 }
                 var clockIn = _context.ClockIns.FirstOrDefault(o => o.OpenId == clockModel.OpenId && o.CreatedAt.Date == DateTime.Now.Date);
 
-                
                 var video = new Video()
                 {
                     Name = clockModel.DailyVideoFileName,
@@ -164,31 +165,24 @@ namespace aspnetapp.Controllers
                           await  _context.Videos.AddAsync(video);
                         }
                         _context.ClockIns.Update(clockIn);
-                        
                     }
-                    
-                    
-                   
 
                     patient.LastCheckInTime = DateTime.Now;
                     _context.Patients.Update(patient);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-
-
-
-                    return Ok(new Result() { code = "1", message = "success" });
-
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
                     transaction.Rollback();
-                    return Ok(new Result() { code = "-1", message = e.Message });
+                    _logger.LogError(ex.Message);
+                    return Ok(new SimpleResult() { code = "-1", message = ex.Message });
                 }
-                return Ok(new Result() { code = "1", message = "success" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -207,7 +201,7 @@ namespace aspnetapp.Controllers
                 var model = _context.ClockIns.FirstOrDefault(o => o.Id == id);
                 if (model == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有打卡记录" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有打卡记录" });
                 }
                 model.FeedbackComments = content;
                 model.UpdatedAt = DateTime.Now;
@@ -249,10 +243,11 @@ namespace aspnetapp.Controllers
                         _context.SaveChanges();
                     }
                 }
-                return Ok(new Result() { code = "1", message = "success" });
+                return Ok(new SimpleResult() { code = "1", message = "success" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

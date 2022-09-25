@@ -1,12 +1,10 @@
-﻿using entityModel;
+﻿using EntityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 public class RegisterViewModel
 {
     public string userName { get; set; } = string.Empty;
@@ -19,7 +17,6 @@ public class RegisterViewModel
     /// 真是姓名
     /// </summary>
     public string realName { get; set; } = string.Empty;
-
     public string userSex { get; set; } = string.Empty;
     /// <summary>
     /// 要加入的角色名称
@@ -49,12 +46,12 @@ namespace aspnetapp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly RoleManager<NoteRole> _roleManager;
         private readonly UserManager<NoteUser> _userManager;
-        public UserController(RoleManager<NoteRole> context, UserManager<NoteUser> userManager)
-        {
+        public UserController(ILogger<UserController> logger,  RoleManager<NoteRole> context, UserManager<NoteUser> userManager)
+        :base(logger){
             _roleManager = context;
             _userManager = userManager;
         }
@@ -70,7 +67,7 @@ namespace aspnetapp.Controllers
                     .Take(pageQuery.pageSize)
                     .ToList();
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -94,11 +91,10 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
-
-        // GET api/<PatientController>/5
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult> Get(string id)
@@ -108,14 +104,14 @@ namespace aspnetapp.Controllers
                 var user = _userManager.Users.FirstOrDefault(o => o.Id == id);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到用户" });
                 }
                 var claims = await _userManager.GetClaimsAsync(user);
                 var realname = claims.FirstOrDefault(o => o.Type == ClaimTypes.Name);
                 var sex = claims.FirstOrDefault(o => o.Type == ClaimTypes.Gender);
                 var roles = await _userManager.GetRolesAsync(user);
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -136,25 +132,25 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
 
-        // GET api/<PatientController>/5
         [HttpGet("getUserByRoleName/{roleName}")]
         public async Task<ActionResult> GetUserByRoleName(string roleName)
         {
             try
             {
                 var users = await _userManager.GetUsersInRoleAsync(roleName);
-                if (users.Count==0)
+                if (users.Count == 0)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到用户" });
                 }
                 var list = new List<object>();
                 foreach (var item in users)
                 {
-                    var rename =(await _userManager.GetClaimsAsync(item)).FirstOrDefault(o => o.Type == ClaimTypes.Name);
+                    var rename = (await _userManager.GetClaimsAsync(item)).FirstOrDefault(o => o.Type == ClaimTypes.Name);
                     list.Add(new
                     {
                         id = item.Id,
@@ -162,7 +158,7 @@ namespace aspnetapp.Controllers
                         name = rename?.Value,
                     });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -171,6 +167,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -204,24 +201,25 @@ namespace aspnetapp.Controllers
                         result = await _userManager.AddToRolesAsync(noteUser, model.roles);
                         result = await _userManager.AddClaimsAsync(noteUser, claims);
                         transaction.Commit();
-                        return Ok(new Result() { code = "1", message = "success" });
+                        return Ok(new SimpleResult() { code = "1", message = "success" });
                     }
                 }
                 catch (Exception e)
                 {
                     transaction.Rollback();
-                    return Ok(new Result() { code = "-1", message = e.Message });
+                    return Ok(new SimpleResult() { code = "-1", message = e.Message });
                 }
                 var msg = "";
                 foreach (var error in result.Errors)
                 {
                     msg += error.Description + ",";
                 }
-                return Ok(new Result() { code = "-1", message = msg });
+                return Ok(new SimpleResult() { code = "-1", message = msg });
             }
             catch (Exception ex)
             {
-                return Ok(new Result() { code = "-1", message = "注册失败---" + ex.Message });
+                _logger.LogError(ex.Message);
+                return Ok(new SimpleResult() { code = "-1", message = "注册失败---" + ex.Message });
             }
         }
 
@@ -236,7 +234,7 @@ namespace aspnetapp.Controllers
                 var user = await  _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
                 }
                 var oldroles = await _userManager.GetRolesAsync(user);
 
@@ -264,9 +262,9 @@ namespace aspnetapp.Controllers
                     if (result.Succeeded)
                     {
                         await transaction.CommitAsync();
-                        return Ok(new Result() { code = "1", message = "更新success" });
+                        return Ok(new SimpleResult() { code = "1", message = "更新success" });
                     }
-                    return Ok(new Result() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description)) });
+                    return Ok(new SimpleResult() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description)) });
                 }
                 catch (Exception)
                 {
@@ -277,6 +275,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -290,15 +289,15 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
                 }
                 DateTimeOffset? dateTimeOffset = isLock ? DateTimeOffset.MaxValue : null;
                 var result = await _userManager.SetLockoutEndDateAsync(user, dateTimeOffset);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "success" });
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "-1",
                     message = string.Join(",", result.Errors.Select(o => o.Description))
@@ -319,16 +318,16 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
                 }
                 var password = "Abc@123";
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var result = await _userManager.ResetPasswordAsync(user, code, password);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "success" });
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "-1",
                     message = string.Join(",", result.Errors.Select(o => o.Description))
@@ -348,15 +347,14 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该用户" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
                 }
-                
                 var result = await _userManager.DeleteAsync(user);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "删除success" });
+                    return Ok(new SimpleResult() { code = "1", message = "删除success" });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "-1",
                     message = string.Join(",", result.Errors.Select(o => o.Description))
@@ -364,6 +362,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

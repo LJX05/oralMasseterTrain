@@ -1,4 +1,4 @@
-﻿using entityModel;
+﻿using EntityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,11 +25,12 @@ namespace aspnetapp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController : ControllerBase
+    public class RoleController : BaseController
     {
         private readonly RoleManager<NoteRole> _roleManager;
 
-        public RoleController(RoleManager<NoteRole> context)
+        public RoleController(ILogger<RoleController> logger,RoleManager<NoteRole> context)
+            :base(logger)
         {
             _roleManager = context;
         }
@@ -45,7 +46,7 @@ namespace aspnetapp.Controllers
                     .Take(pageQuery.pageSize)
                     .ToList();
 
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -67,6 +68,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -78,13 +80,12 @@ namespace aspnetapp.Controllers
         {
             try
             {
-
                 var role = _roleManager.Roles.FirstOrDefault(o => o.Id == id);
                 if (role == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该角色" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该角色" });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "1",
                     message = "success",
@@ -99,6 +100,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -124,12 +126,13 @@ namespace aspnetapp.Controllers
                 var result = await _roleManager.CreateAsync(role);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "success" });
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
-                return Ok(new Result() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description )) });
+                return Ok(new SimpleResult() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description )) });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -144,7 +147,7 @@ namespace aspnetapp.Controllers
                 var role = await  _roleManager.FindByIdAsync(id);
                 if (role == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该角色" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该角色" });
                 }
                 role.Name = model.roleName;
                 role.Code = model.roleNo;
@@ -153,12 +156,13 @@ namespace aspnetapp.Controllers
                 var result = await _roleManager.UpdateAsync(role);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "更新success" });
+                    return Ok(new SimpleResult() { code = "1", message = "更新success" });
                 }
-                return Ok(new Result() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description)) });
+                return Ok(new SimpleResult() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description)) });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }
@@ -173,18 +177,18 @@ namespace aspnetapp.Controllers
                 var role = await _roleManager.FindByIdAsync(id);
                 if (role == null)
                 {
-                    return Ok(new Result() { code = "-1", message = "没有找到该角色" });
+                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该角色" });
                 }
                 else if (role.IsPreset)
                 {
-                    return Ok(new Result() { code = "-1", message = "预置角色无法删除" });
+                    return Ok(new SimpleResult() { code = "-1", message = "预置角色无法删除" });
                 }
                 var result = await _roleManager.DeleteAsync(role);
                 if (result.Succeeded)
                 {
-                    return Ok(new Result() { code = "1", message = "更新success" });
+                    return Ok(new SimpleResult() { code = "1", message = "更新success" });
                 }
-                return Ok(new Result()
+                return Ok(new SimpleResult()
                 {
                     code = "-1",
                     message = string.Join(",", result.Errors.Select(o => o.Description))
@@ -192,6 +196,7 @@ namespace aspnetapp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
         }

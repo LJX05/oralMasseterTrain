@@ -1,4 +1,4 @@
-﻿using entityModel;
+﻿using EntityModel;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;

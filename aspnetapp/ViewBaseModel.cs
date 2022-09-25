@@ -10,7 +10,7 @@ namespace aspnetapp
         public DateTime updatedAt { get; set; }
     }
 
-    public class Result
+    public class SimpleResult
     {
         public string message { get; set; } = string.Empty;
 
