@@ -263,7 +263,7 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var model = await _context.WeMessageTemplates.LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "打卡提醒" && o.IS_Send == false);
+                var model = await _context.WeMessageTemplates.OrderBy(o=>o.CreatedAt).LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "打卡提醒" && o.IS_Send == false);
                 if (model == null)
                 {
                     return Ok(new SimpleResult() { code = "-1", message = "当前用户没有授权提醒，请打电话提醒！" });
@@ -289,8 +289,13 @@ namespace aspnetapp.Controllers
                     model.IS_Send = true;
                     _context.WeMessageTemplates.Update(model);
                     _context.SaveChanges();
+                    return Ok(new SimpleResult() { code = "1", message = "success" });
                 }
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                else
+                {
+
+                }
+                
             }
             catch (Exception ex)
             {
