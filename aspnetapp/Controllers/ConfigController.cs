@@ -42,11 +42,6 @@ namespace aspnetapp.Controllers
             _context = context;
         }
 
-        private static List<(string id, string name)> Templates = new List<(string id , string name)>()
-        {
-            new ("FGW8j2DYLoDO2ZKf3w_D6pOggXQYQSsQK_lJ7fEgj6g","咨询回复通知"),
-            new ("d-zw8JJKqXqRPFxUcD-s385QWDdpaPzDAsvk82g-jbQ","打卡提醒"), 
-        };
 
         /// <summary>
         /// 获取模板id
@@ -201,7 +196,7 @@ namespace aspnetapp.Controllers
                     {
                         continue;
                     }
-                    var tem = Templates.FirstOrDefault(o => o.id == item.id);
+                    var tem = _context.TemplateConfigs.FirstOrDefault(o => o.TempId == item.id);
                     var model = new WeMessageTemplate()
                     {
                         CreatedAt = DateTime.Now,
@@ -209,8 +204,8 @@ namespace aspnetapp.Controllers
                         IS_Send = false,
                         OpenId = openId,
                         PId = patient.Id,
-                        TempId = item.id,
-                        TempName = tem.name,
+                        TempId = tem.TempId,
+                        TempName = tem.TempName,
                     };
                     ws.Add(model);
                 }
