@@ -263,7 +263,7 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var model = await _context.WeMessageTemplates.LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "" && o.IS_Send == false);
+                var model = await _context.WeMessageTemplates.LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "打卡提醒" && o.IS_Send == false);
                 if (model == null)
                 {
                     return Ok(new SimpleResult() { code = "-1", message = "当前用户没有授权提醒，请打电话提醒！" });
