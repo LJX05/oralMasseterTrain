@@ -293,7 +293,7 @@ namespace aspnetapp.Controllers
                 }
                 else
                 {
-
+                    return Ok(new SimpleResult() { code = "-1", message = "发送消息失败" });
                 }
                 
             }
