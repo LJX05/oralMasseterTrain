@@ -57,8 +57,6 @@ namespace aspnetapp.Controllers
                 {
                     openid = await WXCommon.GetOpenId(code);
                 }
-                
-
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openid);
                 if (patient == null)
                 {

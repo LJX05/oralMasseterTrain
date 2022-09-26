@@ -19,7 +19,16 @@ public class SubscribeInfo
 
     public string result { get; set; } = string.Empty;
 }
-
+public class TemplateConfig
+{
+    /// <summary>
+    /// 模板id
+    /// </summary>
+    public string tempId { get; set; } = string.Empty;
+    public string tempType { get; set; } = string.Empty;
+    public string tempName { get; set; } = string.Empty;
+    public string tempData { get; set; } = string.Empty;
+}
 namespace aspnetapp.Controllers
 {
     [Route("api/[controller]")]
@@ -40,17 +49,89 @@ namespace aspnetapp.Controllers
         };
 
         /// <summary>
-        /// 获取模板
+        /// 获取模板id
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
         [HttpGet("GetTemplateIds")]
         [AllowAnonymous]
-        public  ActionResult GetTemplateIds()
+        public async Task<ActionResult> GetTemplateIds()
         {
-            string[] list = Templates.Select(o=>o.id).ToArray();
-            return Ok(new SimpleResult() { code = "1", message = "success",data = list });
+            try
+            {
+                var Templates = await _context.TemplateConfigs.ToListAsync();
+                string[] list = Templates.Select(o => o.TempId).ToArray();
+                return Ok(new SimpleResult() { code = "1", message = "success", data = list });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
+        /// <summary>
+        /// 获取模板
+        /// </summary>
+        /// <param PageQuery="pageQuery"></param>
+        /// <returns></returns>
+        [HttpGet("getTemplates")]
+        [Authorize]
+        public async Task<ActionResult> GetTemplates([FromQuery] PageQuery pageQuery)
+        {
+            try
+            {
+                var count = await _context.TemplateConfigs.CountAsync(o => o.TempName.Contains(pageQuery.search));
+                var templateConfigs = await _context.TemplateConfigs.Where(o => o.TempName.Contains(pageQuery.search))
+                    .Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
+                    .Take(pageQuery.pageSize)
+                    .ToListAsync();
+                return Ok(new SimpleResult() { code = "1", message = "success", data = new PageResult
+                {
+                    count = count,
+                    list = templateConfigs
+                }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+        /// <summary>
+        /// 获取模板
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost("addTemplate")]
+        [Authorize]
+        public async Task<ActionResult> AddTemplate([FromBody] TemplateConfig template)
+        {
+            try
+            {
+                var templateConfig = await _context.TemplateConfigs.FirstOrDefaultAsync(o => o.TempId == template.tempId);
+                if (templateConfig != null)
+                {
+                    return Ok(new SimpleResult() { code = "-1", message = "模板消息ID重复" + template.tempId });
+                }
+                var model = new WeMessageTemplateConfig()
+                {
+                    TempData = template.tempData,
+                    TempId = template.tempId,
+                    TempName = template.tempName,
+                    TempType = "微信"
+                };
+                await _context.TemplateConfigs.AddAsync(model);
+                await _context.SaveChangesAsync();
+                return Ok(new SimpleResult() { code = "1", message = "success" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

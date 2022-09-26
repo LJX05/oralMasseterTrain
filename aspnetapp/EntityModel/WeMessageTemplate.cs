@@ -23,4 +23,19 @@ namespace EntityModel
         public DateTime UpdatedAt { get; set; }
 
     }
+
+    [Table("We_MessageTemplateConfig")]
+    public class WeMessageTemplateConfig
+    {
+        [Key]
+        public long  Id { get; set; }
+        /// <summary>
+        /// 模板id
+        /// </summary>
+        public string TempId { get; set; } = string.Empty;
+        public string TempType { get; set; } = string.Empty;
+        public string TempName { get; set; } = string.Empty;
+        public string TempData { get; set; } = string.Empty;
+    }
+
 }
