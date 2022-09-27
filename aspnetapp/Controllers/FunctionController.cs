@@ -30,7 +30,7 @@ namespace aspnetapp.Controllers
 
                 return Ok(new SimpleResult()
                 {
-                    code = "1",
+                    code = 1,
                     message = "success",
                     data = result
                 });

@@ -22,7 +22,7 @@ namespace aspnetapp.Controllers
             try
             {
                 var ret = await WXCommon.GetUploadFileLink(fileName,this.Request);
-                return Ok(new SimpleResult() { code = "1", data = ret });
+                return Ok(new SimpleResult() { code = 1, data = ret });
             }
             catch (Exception ex)
             {

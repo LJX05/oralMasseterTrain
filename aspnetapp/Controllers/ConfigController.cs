@@ -56,7 +56,7 @@ namespace aspnetapp.Controllers
             {
                 var Templates = await _context.TemplateConfigs.ToListAsync();
                 string[] list = Templates.Select(o => o.TempId).ToArray();
-                return Ok(new SimpleResult() { code = "1", message = "success", data = list });
+                return OkResult(list );
             }
             catch (Exception ex)
             {
@@ -80,12 +80,12 @@ namespace aspnetapp.Controllers
                     .Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
                     .Take(pageQuery.pageSize)
                     .ToListAsync();
-                return Ok(new SimpleResult() { code = "1", message = "success", data = new PageResult
+                return OkResult(new PageResult
                 {
                     count = count,
                     list = templateConfigs
                 }
-                });
+                );
             }
             catch (Exception ex)
             {
@@ -107,7 +107,7 @@ namespace aspnetapp.Controllers
                 var templateConfig = await _context.TemplateConfigs.FirstOrDefaultAsync(o => o.TempId == template.tempId);
                 if (templateConfig != null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "模板消息ID重复" + template.tempId });
+                    return Error("模板消息ID重复" + template.tempId );
                 }
                 var model = new WeMessageTemplateConfig()
                 {
@@ -118,7 +118,7 @@ namespace aspnetapp.Controllers
                 };
                 await _context.TemplateConfigs.AddAsync(model);
                 await _context.SaveChangesAsync();
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -134,11 +134,11 @@ namespace aspnetapp.Controllers
         [HttpGet("GetENVID")]
         public ActionResult GetENVID()
         {
-            return Ok(new SimpleResult() { code = "1", message = "success", data = new
+            return OkResult(new
             {
                 envId = WXCommon.WxEnv,
                 envName = WXCommon.CloudEnvName
-            } });
+            });
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace aspnetapp.Controllers
                 { "角色管理-增加", "add" }
             };
 
-            return Ok(new SimpleResult() { code = "1", message = "success", data = kv });
+            return OkResult(kv);
         }
 
 
@@ -211,7 +211,7 @@ namespace aspnetapp.Controllers
                 }
                 await _context.WeMessageTemplates.AddRangeAsync(ws);
                 await _context.SaveChangesAsync();
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {

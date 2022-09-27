@@ -10,5 +10,22 @@ namespace aspnetapp.Controllers
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        protected OkObjectResult OkResult(object data)
+        {
+            return base.Ok(new SimpleResult() { code = 1, message = "成功", data = data });
+        }
+        protected OkObjectResult OkResult(string msg)
+        {
+            return base.Ok(new SimpleResult() { code = 1, message = msg });
+        }
+        protected OkObjectResult OkResult()
+        {
+            return base.Ok(new SimpleResult() { code = 1, message = "成功" });
+        }
+        protected OkObjectResult Error(string msg)
+        {
+            return base.Ok(new SimpleResult() { code = -1, message = msg });
+        }
     }
 }

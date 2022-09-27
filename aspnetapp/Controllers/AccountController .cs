@@ -50,15 +50,15 @@ namespace aspnetapp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.username, model.password, model.rememberMe, false);
                 if (!result.Succeeded)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "用户名或者密码错误" });
+                    return Error("用户名或者密码错误" );
                 }
+                return OkResult("成功");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Ok(new SimpleResult() { code = "-1", message = ex.Message });
+                return Error(ex.Message);
             }
-            return Ok(new SimpleResult() { code = "1", message = "success" });
         }
         /// <summary>
         /// 登出
@@ -73,15 +73,15 @@ namespace aspnetapp.Controllers
                 var userName = User.Identity.Name;
                 if (string.IsNullOrEmpty(userName))
                 {
-                    return Ok(new SimpleResult() { code = "1", message = "无用户，无需登出" });
+                    return OkResult("无用户，无需登出" );
                 }
                 await _signInManager.SignOutAsync();
-                return Ok(new SimpleResult() { code = "1", message = $"{userName} 登出成功" });
+                return OkResult($"{userName} 登出成功");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Ok(new SimpleResult() { code = "-1", message = "登出失败---" + ex.Message });
+                return Error("登出失败---" + ex.Message );
             }
         }
         

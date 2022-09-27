@@ -3,6 +3,9 @@ using EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NPOI.SS.Formula.Functions;
+using System.Data;
+using System.IO;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -46,19 +49,15 @@ namespace aspnetapp.Controllers
                     .Skip(pageQuery.pageSize * pageQuery.pageIndex)
                     .Take(pageQuery.pageSize)
                     .ToList();
-                return Ok(new SimpleResult()
+                return OkResult(new PageResult
                 {
-                    code = "1",
-                    message = "success",
-                    data = new PageResult
+                    count = count,
+                    list = clocks.Select(o => new
                     {
-                        count = count,
-                        list = clocks.Select(o => new
-                        {
 
-                        })
-                    }
-                });
+                    })
+                }
+                );
             }
             catch (Exception ex)
             {
@@ -74,23 +73,18 @@ namespace aspnetapp.Controllers
             {
                 var clocks =  _context.ClockIns.Where(b => b.OpenId  == openid);
 
-                return Ok(new SimpleResult()
+                return OkResult(clocks.Select(o => new
                 {
-                    code = "1",
-                    message = "success",
-                   
-                    data = clocks.Select(o => new
+                    o.Id,
+                    o.FeedbackComments,
+                    date = o.CreatedAt.ToString("yyyy-MM-dd"), //时间
+                    videos = o.Videos.Select(v => new
                     {
-                        o.Id,
-                        o.FeedbackComments,
-                        date = o.CreatedAt.ToString("yyyy-MM-dd"), //时间
-                        videos = o.Videos.Select(v=>new
-                        {
-                            id = v.Id,
-                            name = v.Name
-                        })
+                        id = v.Id,
+                        name = v.Name
                     })
-                });
+                })
+                );
             }
             catch (Exception ex)
             {
@@ -113,7 +107,7 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.FirstOrDefault(o => o.OpenId == clockModel.OpenId);
                 if (patient == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有此患者" });
+                    return Error("没有此患者" );
                 }
                 var clockIn = _context.ClockIns.FirstOrDefault(o => o.OpenId == clockModel.OpenId && o.CreatedAt.Date == DateTime.Now.Date);
 
@@ -171,13 +165,13 @@ namespace aspnetapp.Controllers
                     _context.Patients.Update(patient);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return Ok(new SimpleResult() { code = "1", message = "success" });
+                    return OkResult();
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
                     _logger.LogError(ex.Message);
-                    return Ok(new SimpleResult() { code = "-1", message = ex.Message });
+                    return Error(ex.Message );
                 }
             }
             catch (Exception ex)
@@ -201,7 +195,7 @@ namespace aspnetapp.Controllers
                 var model = _context.ClockIns.FirstOrDefault(o => o.Id == id);
                 if (model == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有打卡记录" });
+                    return Error("没有打卡记录" );
                 }
                 model.FeedbackComments = content;
                 model.UpdatedAt = DateTime.Now;
@@ -243,7 +237,7 @@ namespace aspnetapp.Controllers
                         _context.SaveChanges();
                     }
                 }
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -266,7 +260,7 @@ namespace aspnetapp.Controllers
                 var model = await _context.WeMessageTemplates.OrderBy(o=>o.CreatedAt).LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "打卡提醒" && o.IS_Send == false);
                 if (model == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "当前用户没有授权提醒，请打电话提醒！" });
+                    return Error("当前用户没有授权提醒，请打电话提醒！" );
                 }
                 var data = new
                 {
@@ -289,11 +283,11 @@ namespace aspnetapp.Controllers
                     model.IS_Send = true;
                     _context.WeMessageTemplates.Update(model);
                     _context.SaveChanges();
-                    return Ok(new SimpleResult() { code = "1", message = "success" });
+                    return OkResult();
                 }
                 else
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "发送消息失败" });
+                    return Error("发送消息失败" );
                 }
                 
             }
@@ -309,5 +303,73 @@ namespace aspnetapp.Controllers
         public void Delete(int id)
         {
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pageQuery"></param>
+        /// <param name="userManager"></param>
+        /// <returns></returns>
+        [HttpPost("exportExcel")]
+        public async Task<ActionResult> ExportExcel([FromBody] PageQuery pageQuery,
+            [FromServices] UserManager<NoteUser> userManager)
+        {
+            try
+            {
+                var dataTable = new DataTable();
+                var patients = await  _context.Patients.ToListAsync();
+                var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2).ToListAsync();
+                var pNames = patients.Select(o => o.Name);
+                var simpleItems  = getSimpleItems();
+                dataTable.Columns.Add("日期");
+                simpleItems.Add(new SimpleItem { text = "日期", value = "日期", tag = 15 });
+                foreach (var item in pNames)
+                {
+                    dataTable.Columns.Add(item);
+                    simpleItems.Add(new SimpleItem { text = item, value = item, tag = 12 });
+                }
+                for (DateTime time = pageQuery.date1; time <= pageQuery.date2; time = time.AddDays(1))
+                {
+                    //当天打卡的人
+                    var clocks = clockIns.Where(o => o.CreatedAt.Date == time.Date);
+
+                    var data = patients.Select(p =>
+                    {
+                        if (clocks.Any(c => c.OpenId == p.OpenId))
+                        {
+                            return "打卡";
+                        }
+                        else
+                        {
+                            return "未打卡";
+                        }
+                    }).ToList();
+                    data.Insert(0, time.ToString("yyyy-MM-dd")); 
+                    dataTable.Rows.Add(data.ToArray());
+                };
+                using (var stream = new MemoryStream())
+                {
+                    NPOIHelper.exportToExcel(dataTable, simpleItems, stream);
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.xls"); ;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private IList<SimpleItem> getSimpleItems()
+        {
+            var list = new List<SimpleItem>();
+
+
+            return list;
+        }
     }
+
+    
+
 }

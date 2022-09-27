@@ -41,7 +41,7 @@ namespace aspnetapp.Controllers
                 {
                     openid = await WXCommon.GetOpenId(code);
                 }
-                return Ok(new SimpleResult() { code = "1", message = "sucess" ,data = openid });
+                return Ok(new SimpleResult() { code = 1, message = "sucess" ,data = openid });
             }
             catch (Exception ex)
             {

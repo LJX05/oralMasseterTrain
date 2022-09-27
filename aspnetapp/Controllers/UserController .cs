@@ -67,27 +67,23 @@ namespace aspnetapp.Controllers
                     .Take(pageQuery.pageSize)
                     .ToList();
 
-                return Ok(new SimpleResult()
+                return OkResult(new PageResult
                 {
-                    code = "1",
-                    message = "success",
-                    data = new PageResult
+                    count = count,
+                    list = roles.Select(o => new
                     {
-                        count = count,
-                        list = roles.Select(o => new
-                        {
-                            id = o.Id,
-                            userName = o.UserName,
-                            realName = "***",
-                            userMobile = o.PhoneNumber,
-                            userSex = "***",
-                            userEmail = o.Email,
-                            isLock = o.LockoutEnd == null,
-                            editTime = o._ut_,
-                            editUser = o._uuid_
-                        })
-                    }
-                });
+                        id = o.Id,
+                        userName = o.UserName,
+                        realName = "***",
+                        userMobile = o.PhoneNumber,
+                        userSex = "***",
+                        userEmail = o.Email,
+                        isLock = o.LockoutEnd == null,
+                        editTime = o._ut_,
+                        editUser = o._uuid_
+                    })
+                }
+                );
             }
             catch (Exception ex)
             {
@@ -104,18 +100,14 @@ namespace aspnetapp.Controllers
                 var user = _userManager.Users.FirstOrDefault(o => o.Id == id);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到用户" });
+                    return Error("没有找到用户" );
                 }
                 var claims = await _userManager.GetClaimsAsync(user);
                 var realname = claims.FirstOrDefault(o => o.Type == ClaimTypes.Name);
                 var sex = claims.FirstOrDefault(o => o.Type == ClaimTypes.Gender);
                 var roles = await _userManager.GetRolesAsync(user);
 
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "success",
-                    data = new
+                return OkResult(new
                     {
                         id = user.Id,
                         userName = user.UserName,
@@ -128,7 +120,7 @@ namespace aspnetapp.Controllers
                         roles = roles,
                         editUser = user._uuid_
                     }
-                });
+                );
             }
             catch (Exception ex)
             {
@@ -145,7 +137,7 @@ namespace aspnetapp.Controllers
                 var users = await _userManager.GetUsersInRoleAsync(roleName);
                 if (users.Count == 0)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到用户" });
+                    return Error("没有找到用户" );
                 }
                 var list = new List<object>();
                 foreach (var item in users)
@@ -158,12 +150,7 @@ namespace aspnetapp.Controllers
                         name = rename?.Value,
                     });
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "success",
-                    data = list
-                });
+                return OkResult(list);
             }
             catch (Exception ex)
             {
@@ -201,25 +188,25 @@ namespace aspnetapp.Controllers
                         result = await _userManager.AddToRolesAsync(noteUser, model.roles);
                         result = await _userManager.AddClaimsAsync(noteUser, claims);
                         transaction.Commit();
-                        return Ok(new SimpleResult() { code = "1", message = "success" });
+                        return OkResult();
                     }
                 }
                 catch (Exception e)
                 {
                     transaction.Rollback();
-                    return Ok(new SimpleResult() { code = "-1", message = e.Message });
+                    return Error(e.Message);
                 }
                 var msg = "";
                 foreach (var error in result.Errors)
                 {
                     msg += error.Description + ",";
                 }
-                return Ok(new SimpleResult() { code = "-1", message = msg });
+                return Error(msg );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Ok(new SimpleResult() { code = "-1", message = "注册失败---" + ex.Message });
+                return Error("注册失败---" + ex.Message);
             }
         }
 
@@ -234,7 +221,7 @@ namespace aspnetapp.Controllers
                 var user = await  _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
+                    return Error("没有找到该用户" );
                 }
                 var oldroles = await _userManager.GetRolesAsync(user);
 
@@ -262,9 +249,9 @@ namespace aspnetapp.Controllers
                     if (result.Succeeded)
                     {
                         await transaction.CommitAsync();
-                        return Ok(new SimpleResult() { code = "1", message = "更新success" });
+                        return OkResult();
                     }
-                    return Ok(new SimpleResult() { code = "-1", message = string.Join(",", result.Errors.Select(o => o.Description)) });
+                    return Error(string.Join(",", result.Errors.Select(o => o.Description)) );
                 }
                 catch (Exception)
                 {
@@ -289,19 +276,15 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
+                    return Error("没有找到该用户" );
                 }
                 DateTimeOffset? dateTimeOffset = isLock ? DateTimeOffset.MaxValue : null;
                 var result = await _userManager.SetLockoutEndDateAsync(user, dateTimeOffset);
                 if (result.Succeeded)
                 {
-                    return Ok(new SimpleResult() { code = "1", message = "success" });
+                    return OkResult();
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "-1",
-                    message = string.Join(",", result.Errors.Select(o => o.Description))
-                });
+                return Error(string.Join(",", result.Errors.Select(o => o.Description)) );
             }
             catch (Exception ex)
             {
@@ -318,20 +301,17 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
+                    return Error("没有找到该用户" );
                 }
                 var password = "Abc@123";
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var result = await _userManager.ResetPasswordAsync(user, code, password);
                 if (result.Succeeded)
                 {
-                    return Ok(new SimpleResult() { code = "1", message = "success" });
+                    return OkResult();
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "-1",
-                    message = string.Join(",", result.Errors.Select(o => o.Description))
-                });
+                return Error(string.Join(",", result.Errors.Select(o => o.Description))
+                );
             }
             catch (Exception ex)
             {
@@ -347,18 +327,15 @@ namespace aspnetapp.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该用户" });
+                    return Error("没有找到该用户" );
                 }
                 var result = await _userManager.DeleteAsync(user);
                 if (result.Succeeded)
                 {
-                    return Ok(new SimpleResult() { code = "1", message = "删除success" });
+                    return OkResult();
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "-1",
-                    message = string.Join(",", result.Errors.Select(o => o.Description))
-                });
+                return Error(string.Join(",", result.Errors.Select(o => o.Description))
+                );
             }
             catch (Exception ex)
             {

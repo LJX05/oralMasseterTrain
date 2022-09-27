@@ -60,14 +60,9 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openid);
                 if (patient == null)
                 {
-                    return Ok(new SimpleResult() { code = "-10", message = "没有此微信用户,请先注册", data = openid });
+                    return Ok(new SimpleResult() { code = -10, message = "没有此微信用户,请先注册", data = openid });
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "sucess",
-                    data = openid
-                });
+                return Ok(new SimpleResult() { code = 1, message = "成功", data = openid });
             }
             catch (Exception ex)
             {
@@ -114,16 +109,9 @@ namespace aspnetapp.Controllers
                         todayClockInId = cid,//当天签到
                     };
                 });
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "success",
-                    data = new PageResult
-                    {
+                return OkResult(new PageResult{
                         count = count,
-                        list = list
-                    }
-                });
+                        list = list });
             }
             catch (Exception ex)
             {
@@ -140,7 +128,7 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.OpenId == openId);
                 if (patient == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有此微信用户,请先注册" });
+                    return Error("没有此微信用户,请先注册");
                 }
                 var doctor = (await userManger.GetUsersInRoleAsync("医生")).FirstOrDefault(o => o.Id == patient.DoctorId);
                 var doctorName = "--";
@@ -150,23 +138,19 @@ namespace aspnetapp.Controllers
                 }
 
 
-                return Ok(new SimpleResult()
+                return OkResult(new
                 {
-                    code = "1",
-                    message = "success",
-                    data = new
+                    patient.Id,
+                    patient.Name,
+                    patient.Sex,
+                    doctorName,
+                    TeachVideos = patient.PToVList.Select(o => new
                     {
-                        patient.Id,
-                        patient.Name,
-                        patient.Sex,
-                        doctorName,
-                        TeachVideos = patient.PToVList.Select(o => new
-                        {
-                            id = o.TVId,
-                            name =o.TVideo.Name
-                        })
-                    }
-                });
+                        id = o.TVId,
+                        name = o.TVideo.Name
+                    })
+                }
+                );
             }
             catch (Exception ex)
             {
@@ -183,26 +167,21 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.SingleOrDefault(b => b.Id == id);
                 if (patient == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有此微信用户,请先注册" });
+                    return Error("没有此微信用户,请先注册" );
                 }
                 var activities = _context.PatientActivitys.Where(o => o.PId == patient.Id).ToList();
-                return Ok(new SimpleResult()
+                return OkResult(new
                 {
-                    code = "1",
-                    message = "success",
-                    data = new
+                    setTeachVideos = patient.PToVList.Select(o => new
                     {
-                        setTeachVideos = patient.PToVList.Select(o => new
-                        {
-                            name = o.TVideo.Name,
-                            id = o.TVId,
-                        }),
-                        activities = activities.Select(a => new
-                        {
-                            timestamp = a.CreatedAt,
-                            content = a.Content
-                        })
-                    }
+                        name = o.TVideo.Name,
+                        id = o.TVId,
+                    }),
+                    activities = activities.Select(a => new
+                    {
+                        timestamp = a.CreatedAt,
+                        content = a.Content
+                    })
                 });
             }
             catch (Exception ex)
@@ -221,12 +200,12 @@ namespace aspnetapp.Controllers
                 var patient1 = _context.Patients.FirstOrDefault(o => o.OpenId == model.openId);
                 if (patient1 != null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "该患者已登记无需登记" });
+                    return Error("该患者已登记无需登记" );
                 }
                 var user = userManger.FindByIdAsync(model.doctorId);
                 if (user == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "未找到选择的医生" });
+                    return Error("未找到选择的医生" );
                 }
                 var patient = new Patient()
                 {
@@ -242,7 +221,7 @@ namespace aspnetapp.Controllers
                 };
                 await _context.Patients.AddAsync(patient);
                 await _context.SaveChangesAsync();
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -264,12 +243,12 @@ namespace aspnetapp.Controllers
                 var patient = _context.Patients.FirstOrDefault(o => o.Id == id);
                 if (patient == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "该患者未登记" });
+                    return Error("该患者未登记" );
                 }
                 var tvideos = _context.Videos.Where(o => tid.Contains(o.Id));
                 if (tvideos.Count() == 0)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "未找到该视频" });
+                    return Error("未找到该视频" );
                 }
                 //插入一天记录
                 var activity = new PatientActivity()
@@ -304,12 +283,12 @@ namespace aspnetapp.Controllers
                     await _context.PatientActivitys.AddAsync(activity);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return Ok(new SimpleResult() { code = "1", message = "success" });
+                    return OkResult();
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return Ok(new SimpleResult() { code = "-1", message = ex.Message });
+                    return Error(ex.Message );
                 }
 
             }

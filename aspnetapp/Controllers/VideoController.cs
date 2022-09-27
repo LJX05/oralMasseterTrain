@@ -39,16 +39,12 @@ namespace aspnetapp.Controllers
                     .Take(pageQuery.pageSize)
                     .ToList();
 
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "success",
-                    data = new PageResult
+                return OkResult(new PageResult
                     {
                         count = count,
                         list = videos
                     }
-                });
+                );
             }
             catch (Exception ex)
             {
@@ -66,13 +62,9 @@ namespace aspnetapp.Controllers
                 var video = _context.Videos.FirstOrDefault(o => o.Id == id);
                 if (video == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到视频文件" });
+                    return Error("没有找到视频文件" );
                 }
-                return Ok(new SimpleResult()
-                {
-                    code = "1",
-                    message = "success",
-                    data = new
+                return OkResult(new
                     {
                         video.Name,
                         video.FileId,
@@ -80,7 +72,7 @@ namespace aspnetapp.Controllers
                         video.Describe,
                         video.UpdatedAt,
                     }
-                });
+                );
             }
             catch (Exception ex)
             {
@@ -99,7 +91,7 @@ namespace aspnetapp.Controllers
         {
             try
             {
-                var ret = new SimpleResult() { code = "1", message = "success" };
+                var ret = new SimpleResult() { code = 1, message = "success" };
                 if (cache.TryGetValue(nameof(GetVideoUrl) + "$" + id, out var url))
                 {
                     ret.data = url;
@@ -108,11 +100,11 @@ namespace aspnetapp.Controllers
                 var video = _context.Videos.FirstOrDefault(o => o.Id == id);
                 if (video == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到视频文件" });
+                    return Error("没有找到视频文件" );
                 }
                 ret.data = await WXCommon.GetFileTemporaryLink(video.FileId, 7200,this.Request);
                 cache.Set(nameof(GetVideoUrl) + "$" + id, ret.data, TimeSpan.FromSeconds(7200));
-                return Ok(ret);
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -138,7 +130,7 @@ namespace aspnetapp.Controllers
                 };
                 await _context.Videos.AddAsync(video);
                 await _context.SaveChangesAsync();
-                return Ok(new SimpleResult { code = "1",message ="保存成功"});
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -157,14 +149,14 @@ namespace aspnetapp.Controllers
                 var video = _context.Videos.FirstOrDefault(o => o.Id == id);
                 if (video == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该视频" });
+                    return Error("没有找到该视频" );
                 }
                 video.Name = name;
                 video.Describe = describe;
                 video.UpdatedAt = DateTime.Now;
                 _context.Update(video);
                 _context.SaveChanges();
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {
@@ -182,16 +174,16 @@ namespace aspnetapp.Controllers
                 var video = await _context.Videos.FindAsync(id);
                 if (video == null)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "没有找到该视频" });
+                    return Error("没有找到该视频");
                 }
                 var ret = await WXCommon.DeleteUploadFile(new string[] { video.FileId }, this.Request);
                 if (!ret)
                 {
-                    return Ok(new SimpleResult() { code = "-1", message = "删除失败" });
+                    return Error("删除失败" );
                 }
                 _context.Videos.Remove(video);
                 await _context.SaveChangesAsync();
-                return Ok(new SimpleResult() { code = "1", message = "success" });
+                return OkResult();
             }
             catch (Exception ex)
             {
