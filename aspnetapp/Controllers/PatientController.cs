@@ -136,13 +136,12 @@ namespace aspnetapp.Controllers
                 {
                     doctorName = (await userManger.GetClaimsAsync(doctor)).FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
                 }
-
-
                 return OkResult(new
                 {
                     patient.Id,
                     patient.Name,
                     patient.Sex,
+                    patient.Telephone,
                     doctorName,
                     TeachVideos = patient.PToVList.Select(o => new
                     {
@@ -229,6 +228,30 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // POST api/<PatientController>
+        [HttpPost("edit")]
+        public async Task<ActionResult> Edit(PatientModel model)
+        {
+            try
+            {
+                var patient = _context.Patients.FirstOrDefault(o => o.OpenId == model.openId);
+                if (patient == null)
+                {
+                    return Error("未找到该患者");
+                }
+                patient.Telephone = model.phoneNumber;
+                _context.Patients.Update(patient);
+                await _context.SaveChangesAsync();
+                return OkResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         /// <summary>
         /// 设置教学视频
