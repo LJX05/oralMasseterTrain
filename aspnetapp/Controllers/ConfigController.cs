@@ -25,12 +25,15 @@ public class FunctionItem
 
     public string Name { get; set; }
 
+    public string Code { get; set; }
+
     public IList<FunctionItem> Childrens { get; }
 
-    public FunctionItem(int id, string name, int pid = 0)
+    public FunctionItem(int id, string name,string code ,int pid = 0)
     {
         Id = id;
         Name = name;
+        Code = code;
         Pid = pid;
         Childrens = new List<FunctionItem>();
     }
@@ -166,42 +169,42 @@ namespace aspnetapp.Controllers
         public static IList<FunctionItem> GetFunctions()
         {
             var list = new List<FunctionItem>();
-            var item1 = new FunctionItem(1, "患者管理");
-            var item2 = new FunctionItem(11, "读取", 1);
-            var item3 = new FunctionItem(12, "编辑", 1);
-            var item4 = new FunctionItem(13, "删除", 1);
-            var item5 = new FunctionItem(14, "增加", 1);
+            var item1 = new FunctionItem(1, "患者管理", "patientManger");
+            var item2 = new FunctionItem(11, "读取","patient_read",1);
+            var item3 = new FunctionItem(12, "编辑","patient_edit",1);
+            var item4 = new FunctionItem(13, "删除","patient_dele",1);
+            var item5 = new FunctionItem(14, "增加","patient_add", 1);
             list.Add(item1);
             list.Add(item2);
             list.Add(item3);
             list.Add(item4);
             list.Add(item5);
-            var item21 = new FunctionItem(2, "视频管理");
-            var item22 = new FunctionItem(21, "读取", 2);
-            var item23 = new FunctionItem(22, "编辑", 2);
-            var item24 = new FunctionItem(23, "删除", 2);
-            var item25 = new FunctionItem(24, "增加", 2);
+            var item21 = new FunctionItem(2, "视频管理", "videoManger");
+            var item22 = new FunctionItem(21, "读取","video_read", 2);
+            var item23 = new FunctionItem(22, "编辑","video_edit", 2);
+            var item24 = new FunctionItem(23, "删除","video_dele", 2);
+            var item25 = new FunctionItem(24, "增加","video_add", 2);
             list.Add(item21);
             list.Add(item22);
             list.Add(item23);
             list.Add(item24);
             list.Add(item25);
 
-            var item31 = new FunctionItem(3, "用户管理");
-            var item32 = new FunctionItem(31, "读取", 3);
-            var item33 = new FunctionItem(32, "编辑", 3);
-            var item34 = new FunctionItem(33, "删除", 3);
-            var item35 = new FunctionItem(34, "增加", 3);
+            var item31 = new FunctionItem(3, "用户管理", "userManger");
+            var item32 = new FunctionItem(31, "读取","user_read", 3);
+            var item33 = new FunctionItem(32, "编辑","user_edit", 3);
+            var item34 = new FunctionItem(33, "删除","user_dele", 3);
+            var item35 = new FunctionItem(34, "增加","user_add", 3);
             list.Add(item31);
             list.Add(item32);
             list.Add(item33);
             list.Add(item34);
             list.Add(item35);
-            var item41 = new FunctionItem(4, "角色管理");
-            var item42 = new FunctionItem(41, "读取", 4);
-            var item43 = new FunctionItem(42, "编辑", 4);
-            var item44 = new FunctionItem(43, "删除", 4);
-            var item45 = new FunctionItem(44, "增加", 4);
+            var item41 = new FunctionItem(4, "角色管理","roleManger");
+            var item42 = new FunctionItem(41, "读取","role_read", 4);
+            var item43 = new FunctionItem(42, "编辑","role_edit", 4);
+            var item44 = new FunctionItem(43, "删除","role_dele", 4);
+            var item45 = new FunctionItem(44, "增加","role_add", 4);
             list.Add(item41);
             list.Add(item42);
             list.Add(item43);

@@ -334,11 +334,11 @@ namespace aspnetapp.Controllers
                 var children = AuthSubTree(items, item.Id);
                 if (children == null)
                 {
-                    node.Add(item.Name, true);
+                    node.Add(item.Code, true);
                 }
                 else
                 {
-                    node.Add(item.Name, children);
+                    node.Add(item.Code, children);
                 }
             }
             return node;
