@@ -19,7 +19,7 @@ public class FunctionItem
     public int Id { get; set; }
 
     /// <summary>
-    /// ¸¸Id
+    /// çˆ¶Id
     /// </summary>
     public int Pid { get; set; }
 
@@ -47,7 +47,7 @@ public class SubscribeInfo
 public class TemplateConfig
 {
     /// <summary>
-    /// Ä£°åid
+    /// æ¨¡æ¿id
     /// </summary>
     public string tempId { get; set; } = string.Empty;
     public string tempType { get; set; } = string.Empty;
@@ -69,7 +69,7 @@ namespace aspnetapp.Controllers
 
 
         /// <summary>
-        /// »ñÈ¡Ä£°åid
+        /// è·å–æ¨¡æ¿id
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -90,7 +90,7 @@ namespace aspnetapp.Controllers
             }
         }
         /// <summary>
-        /// »ñÈ¡Ä£°å
+        /// è·å–æ¨¡æ¿
         /// </summary>
         /// <param PageQuery="pageQuery"></param>
         /// <returns></returns>
@@ -119,7 +119,7 @@ namespace aspnetapp.Controllers
             }
         }
         /// <summary>
-        /// »ñÈ¡Ä£°å
+        /// è·å–æ¨¡æ¿
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -132,14 +132,14 @@ namespace aspnetapp.Controllers
                 var templateConfig = await _context.TemplateConfigs.FirstOrDefaultAsync(o => o.TempId == template.tempId);
                 if (templateConfig != null)
                 {
-                    return Error("Ä£°åÏûÏ¢IDÖØ¸´" + template.tempId );
+                    return Error("æ¨¡æ¿æ¶ˆæ¯IDé‡å¤" + template.tempId );
                 }
                 var model = new WeMessageTemplateConfig()
                 {
                     TempData = template.tempData,
                     TempId = template.tempId,
                     TempName = template.tempName,
-                    TempType = "Î¢ĞÅ"
+                    TempType = "å¾®ä¿¡"
                 };
                 await _context.TemplateConfigs.AddAsync(model);
                 await _context.SaveChangesAsync();
@@ -169,42 +169,42 @@ namespace aspnetapp.Controllers
         public static IList<FunctionItem> GetFunctions()
         {
             var list = new List<FunctionItem>();
-            var item1 = new FunctionItem(1, "»¼Õß¹ÜÀí", "patientManger");
-            var item2 = new FunctionItem(11, "¶ÁÈ¡","patient_read",1);
-            var item3 = new FunctionItem(12, "±à¼­","patient_edit",1);
-            var item4 = new FunctionItem(13, "É¾³ı","patient_dele",1);
-            var item5 = new FunctionItem(14, "Ôö¼Ó","patient_add", 1);
+            var item1 = new FunctionItem(1, "æ‚£è€…ç®¡ç†", "patientManger");
+            var item2 = new FunctionItem(11, "è¯»å–","patient_read",1);
+            var item3 = new FunctionItem(12, "ç¼–è¾‘","patient_edit",1);
+            var item4 = new FunctionItem(13, "åˆ é™¤","patient_dele",1);
+            var item5 = new FunctionItem(14, "å¢åŠ ","patient_add", 1);
             list.Add(item1);
             list.Add(item2);
             list.Add(item3);
             list.Add(item4);
             list.Add(item5);
-            var item21 = new FunctionItem(2, "ÊÓÆµ¹ÜÀí", "videoManger");
-            var item22 = new FunctionItem(21, "¶ÁÈ¡","video_read", 2);
-            var item23 = new FunctionItem(22, "±à¼­","video_edit", 2);
-            var item24 = new FunctionItem(23, "É¾³ı","video_dele", 2);
-            var item25 = new FunctionItem(24, "Ôö¼Ó","video_add", 2);
+            var item21 = new FunctionItem(2, "è§†é¢‘ç®¡ç†", "videoManger");
+            var item22 = new FunctionItem(21, "è¯»å–","video_read", 2);
+            var item23 = new FunctionItem(22, "ç¼–è¾‘","video_edit", 2);
+            var item24 = new FunctionItem(23, "åˆ é™¤","video_dele", 2);
+            var item25 = new FunctionItem(24, "å¢åŠ ","video_add", 2);
             list.Add(item21);
             list.Add(item22);
             list.Add(item23);
             list.Add(item24);
             list.Add(item25);
 
-            var item31 = new FunctionItem(3, "ÓÃ»§¹ÜÀí", "userManger");
-            var item32 = new FunctionItem(31, "¶ÁÈ¡","user_read", 3);
-            var item33 = new FunctionItem(32, "±à¼­","user_edit", 3);
-            var item34 = new FunctionItem(33, "É¾³ı","user_dele", 3);
-            var item35 = new FunctionItem(34, "Ôö¼Ó","user_add", 3);
+            var item31 = new FunctionItem(3, "ç”¨æˆ·ç®¡ç†", "userManger");
+            var item32 = new FunctionItem(31, "è¯»å–","user_read", 3);
+            var item33 = new FunctionItem(32, "ç¼–è¾‘","user_edit", 3);
+            var item34 = new FunctionItem(33, "åˆ é™¤","user_dele", 3);
+            var item35 = new FunctionItem(34, "å¢åŠ ","user_add", 3);
             list.Add(item31);
             list.Add(item32);
             list.Add(item33);
             list.Add(item34);
             list.Add(item35);
-            var item41 = new FunctionItem(4, "½ÇÉ«¹ÜÀí","roleManger");
-            var item42 = new FunctionItem(41, "¶ÁÈ¡","role_read", 4);
-            var item43 = new FunctionItem(42, "±à¼­","role_edit", 4);
-            var item44 = new FunctionItem(43, "É¾³ı","role_dele", 4);
-            var item45 = new FunctionItem(44, "Ôö¼Ó","role_add", 4);
+            var item41 = new FunctionItem(4, "è§’è‰²ç®¡ç†","roleManger");
+            var item42 = new FunctionItem(41, "è¯»å–","role_read", 4);
+            var item43 = new FunctionItem(42, "ç¼–è¾‘","role_edit", 4);
+            var item44 = new FunctionItem(43, "åˆ é™¤","role_dele", 4);
+            var item45 = new FunctionItem(44, "å¢åŠ ","role_add", 4);
             list.Add(item41);
             list.Add(item42);
             list.Add(item43);
@@ -213,7 +213,7 @@ namespace aspnetapp.Controllers
             return list;
         }
         /// <summary>
-        /// »ñÈ¡²Ëµ¥
+        /// è·å–èœå•
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -225,7 +225,7 @@ namespace aspnetapp.Controllers
         }
 
         /// <summary>
-        /// µİ¹é¼ÓÔØ
+        /// é€’å½’åŠ è½½
         /// </summary>
         private IList<FunctionItem> GenerateTree(IList<FunctionItem> items)
         {
@@ -243,7 +243,7 @@ namespace aspnetapp.Controllers
 
 
         /// <summary>
-        /// ¶©ÔÄ
+        /// è®¢é˜…
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
