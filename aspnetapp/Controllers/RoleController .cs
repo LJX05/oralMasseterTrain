@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Dynamic;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -128,7 +130,6 @@ namespace aspnetapp.Controllers
             }
         }
 
-        // PUT api/<PatientController>/5
         [HttpPut("update/{id}")]
         [Authorize]
         public async Task<ActionResult> Put(string id, [FromBody] RoleEditViewModel model)
@@ -158,6 +159,133 @@ namespace aspnetapp.Controllers
             }
         }
 
+
+        [HttpPut("authorizeRole/{id}")]
+        [Authorize]
+        public async Task<ActionResult> AuthorizeRole(string id, [FromBody] string[] rids,
+            [FromServices] IdentityContext identityContext)
+        {
+            try
+            {
+                var role = await _roleManager.FindByIdAsync(id);
+                if (role == null)
+                {
+                    return Error("没有找到该角色");
+                }
+                var claims = await _roleManager.GetClaimsAsync(role);
+                var transaction = await identityContext.Database.BeginTransactionAsync();
+                try
+                {
+                    foreach (var item in claims)
+                    {
+                        if (!rids.Any(o=> o == item.Type))
+                        {
+                            await _roleManager.RemoveClaimAsync(role,item);
+                        }
+                    }
+                    foreach (var item in rids)
+                    {
+
+                        var oldclaim = claims.FirstOrDefault(o => o.Type == item);
+                        if (oldclaim != null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            var val = ConfigController.GetFunctions().FirstOrDefault(o => o.Id + "" == item)?.Name;
+                            var claim = new Claim(item, val);
+                            await _roleManager.AddClaimAsync(role, claim);
+                        }
+                    }
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex.Message);
+                    return BadRequest(ex.Message);
+                }
+                return OkResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("getCurrentPermission")]
+        [Authorize]
+        public async Task<ActionResult> GetCurrentUserPermission([FromServices] UserManager<NoteUser> userManager)
+        {
+            try
+            {
+                var user =  await userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Error("没有找到用户");
+                }
+                var functions = ConfigController.GetFunctions();
+                if (user.UserName == "admin")
+                {
+                    return OkResult(AuthSubTree(functions, 0));
+                }
+                var roles = await userManager.GetRolesAsync(user);
+                var claims = new List<Claim>();
+                foreach (var item in roles)
+                {
+                    var role = await _roleManager.FindByNameAsync(item);
+                    claims.AddRange(await _roleManager.GetClaimsAsync(role));
+                }
+                
+                var list = new List<FunctionItem>();
+                foreach (var item in claims.Distinct())
+                {
+                    var function = functions.FirstOrDefault(o => o.Id + "" == item.Type);
+                    if (function != null)
+                    {
+                        list.Add(function);
+                    }
+                }
+                return OkResult(AuthSubTree(list,0));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetRolePermission/{id}")]
+        [Authorize]
+        public async Task<ActionResult> GetRolePermission(string id,[FromServices] UserManager<NoteUser> userManager)
+        {
+            try
+            {
+                var role = await _roleManager.FindByIdAsync(id);
+                if (role == null)
+                {
+                    return Error("没有找到角色");
+                }
+                var functions = ConfigController.GetFunctions();
+                
+                var claims = await _roleManager.GetClaimsAsync(role);
+                var list = new List<FunctionItem>();
+                foreach (var item in claims.Distinct())
+                {
+                    var function = functions.FirstOrDefault(o => o.Id + "" == item.Type);
+                    if (function != null)
+                    {
+                        list.Add(function);
+                    }
+                }
+                return OkResult(list.Select(o=>o.Id));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
         // DELETE api/<PatientController>/5
         [HttpDelete("delete/{id}")]
         [Authorize]
@@ -186,6 +314,34 @@ namespace aspnetapp.Controllers
                 _logger.LogError(ex.Message);
                 return BadRequest(ex.Message);
             }
+        }
+
+
+        /// <summary>
+        /// 递归加载
+        /// </summary>
+        private dynamic AuthSubTree(IList<FunctionItem> items, int pid)
+        {
+            var tree = items.Where(o => o.Pid == pid).ToList();
+            //递归结束条件
+            if (tree.Count == 0)
+            {
+                return null;
+            }
+            var node = new ExpandoObject() as IDictionary<string, object>;
+            foreach (var item in tree)
+            {
+                var children = AuthSubTree(items, item.Id);
+                if (children == null)
+                {
+                    node.Add(item.Name, true);
+                }
+                else
+                {
+                    node.Add(item.Name, children);
+                }
+            }
+            return node;
         }
     }
 }

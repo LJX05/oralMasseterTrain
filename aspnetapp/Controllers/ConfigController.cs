@@ -12,7 +12,29 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using EntityModel;
 using aspnetapp.Common;
+using System.Dynamic;
 
+public class FunctionItem
+{
+    public int Id { get; set; }
+
+    /// <summary>
+    /// 父Id
+    /// </summary>
+    public int Pid { get; set; }
+
+    public string Name { get; set; }
+
+    public IList<FunctionItem> Childrens { get; }
+
+    public FunctionItem(int id, string name, int pid = 0)
+    {
+        Id = id;
+        Name = name;
+        Pid = pid;
+        Childrens = new List<FunctionItem>();
+    }
+}
 public class SubscribeInfo
 {
     public string id { get; set; } = string.Empty;
@@ -141,6 +163,52 @@ namespace aspnetapp.Controllers
             });
         }
 
+        public static IList<FunctionItem> GetFunctions()
+        {
+            var list = new List<FunctionItem>();
+            var item1 = new FunctionItem(1, "患者管理");
+            var item2 = new FunctionItem(11, "读取", 1);
+            var item3 = new FunctionItem(12, "编辑", 1);
+            var item4 = new FunctionItem(13, "删除", 1);
+            var item5 = new FunctionItem(14, "增加", 1);
+            list.Add(item1);
+            list.Add(item2);
+            list.Add(item3);
+            list.Add(item4);
+            list.Add(item5);
+            var item21 = new FunctionItem(2, "视频管理");
+            var item22 = new FunctionItem(21, "读取", 2);
+            var item23 = new FunctionItem(22, "编辑", 2);
+            var item24 = new FunctionItem(23, "删除", 2);
+            var item25 = new FunctionItem(24, "增加", 2);
+            list.Add(item21);
+            list.Add(item22);
+            list.Add(item23);
+            list.Add(item24);
+            list.Add(item25);
+
+            var item31 = new FunctionItem(3, "用户管理");
+            var item32 = new FunctionItem(31, "读取", 3);
+            var item33 = new FunctionItem(32, "编辑", 3);
+            var item34 = new FunctionItem(33, "删除", 3);
+            var item35 = new FunctionItem(34, "增加", 3);
+            list.Add(item31);
+            list.Add(item32);
+            list.Add(item33);
+            list.Add(item34);
+            list.Add(item35);
+            var item41 = new FunctionItem(4, "角色管理");
+            var item42 = new FunctionItem(41, "读取", 4);
+            var item43 = new FunctionItem(42, "编辑", 4);
+            var item44 = new FunctionItem(43, "删除", 4);
+            var item45 = new FunctionItem(44, "增加", 4);
+            list.Add(item41);
+            list.Add(item42);
+            list.Add(item43);
+            list.Add(item44);
+            list.Add(item45);
+            return list;
+        }
         /// <summary>
         /// 获取菜单
         /// </summary>
@@ -150,30 +218,24 @@ namespace aspnetapp.Controllers
         [AllowAnonymous]
         public ActionResult GetMenus()
         {
-            var kv = new Dictionary<string, string>
+            return OkResult(GenerateTree(GetFunctions()));
+        }
+
+        /// <summary>
+        /// 递归加载
+        /// </summary>
+        private IList<FunctionItem> GenerateTree(IList<FunctionItem> items)
+        {
+            foreach (var item in items)
             {
-                { "患者管理-读取", "index" },
-                { "患者管理-编辑", "edit" },
-                { "患者管理-删除", "delete" },
-                { "患者管理-增加", "add" },
-
-                { "视频管理-读取", "index" },
-                { "视频管理-编辑", "edit" },
-                { "视频管理-删除", "delete" },
-                { "视频管理-增加", "add" },
-
-                { "用户管理-读取", "index" },
-                { "用户管理-编辑", "edit" },
-                { "用户管理-删除", "delete" },
-                { "用户管理-增加", "add" },
-
-                { "角色管理-读取", "index" },
-                { "角色管理-编辑", "edit" },
-                { "角色管理-删除", "delete" },
-                { "角色管理-增加", "add" }
-            };
-
-            return OkResult(kv);
+                if (item.Pid == 0)
+                {
+                    continue;
+                }
+                var pitem = items.FirstOrDefault(o => o.Id == item.Pid);
+                pitem.Childrens.Add(item);
+            }
+            return items.Where(o => o.Childrens.Count != 0).ToList();
         }
 
 

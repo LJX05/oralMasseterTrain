@@ -40,7 +40,11 @@ namespace aspnetapp
     public class PageQuery
     {
         public string search { get; set; } = string.Empty;
-        
+        /// <summary>
+        /// ¹ıÂËÆ÷
+        /// </summary>
+        public IList<SimpleItem> filter { get; set; } = new List<SimpleItem>();
+
         public DateTime date1 { get; set; }
         public DateTime date2 { get; set; }
 

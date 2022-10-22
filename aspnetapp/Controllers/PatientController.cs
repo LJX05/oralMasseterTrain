@@ -3,6 +3,7 @@ using EntityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -70,17 +71,25 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public ActionResult Get([FromQuery] PageQuery pageQuery)
+        public async Task<ActionResult> Get([FromBody] PageQuery pageQuery, 
+            [FromServices] UserManager<NoteUser> userManager)
         {
             try
             {
-                var count = _context.Patients.Count(o => o.Name.Contains(pageQuery.search));
-                var patients = _context.Patients.Where(o => o.Name.Contains(pageQuery.search))
-                    .Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
+                IQueryable<Patient> queryable;
+                queryable = _context.Patients.Where(o => o.Name.Contains(pageQuery.search));
+                if (!(User.Identity?.Name == "admin" || User.IsInRole("主任医生")))
+                {
+                    var uid = userManager.GetUserId(User);
+                    queryable = queryable.Where(o => o.DoctorId == uid);
+                }
+                var count = queryable.Count();
+
+                var patients = await queryable.Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
                     .Take(pageQuery.pageSize)
-                    .ToList();
+                    .ToListAsync();
                 var list = patients.Select(o =>
                 {
                     var islast = o.LastCheckInTime.GetValueOrDefault().Date == DateTime.Now.Date;
