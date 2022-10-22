@@ -332,6 +332,10 @@ namespace aspnetapp.Controllers
             foreach (var item in tree)
             {
                 var children = AuthSubTree(items, item.Id);
+                if (node.ContainsKey(item.Code))
+                {
+                    continue;
+                }
                 if (children == null)
                 {
                     node.Add(item.Code, true);
