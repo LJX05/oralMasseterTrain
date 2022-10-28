@@ -98,7 +98,12 @@ namespace aspnetapp.Controllers
                     {
                         cid = _context.ClockIns.FirstOrDefault(c => c.OpenId == o.OpenId && DateTime.Now.Date == c.CreatedAt.Date)?.Id;
                     }
-                    var teachName = o.PToVList.Count > 0 ? string.Join(",", o.PToVList.Select(pt => pt.TVideo.Name)) : "未设置";
+                    var teachName = "未设置";
+                    if(o.PToVList != null)
+                    {
+                     teachName = o.PToVList.Count > 0 ? string.Join(",", o.PToVList.Select(pt => pt.TVideo.Name)) : "未设置";
+                    }
+                    
                     return new
                     {
                         o.Id,
