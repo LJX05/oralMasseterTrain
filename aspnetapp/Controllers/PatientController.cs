@@ -86,7 +86,7 @@ namespace aspnetapp.Controllers
                     queryable = queryable.Where(o => o.DoctorId == uid);
                 }
                 var count = queryable.Count();
-
+                pageQuery.pageSize = 50;
                 var patients = await queryable.Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
                     .Take(pageQuery.pageSize)
                     .ToListAsync();
