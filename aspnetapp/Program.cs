@@ -50,11 +50,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = PathString.Empty;
     //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.SlidingExpiration = true;
-    //options.Events.OnRedirectToLogin = context =>
-    //{
-    //    context.Response.StatusCode = 401;
-    //    return Task.CompletedTask;
-    //};
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
 });
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 //builder.Services.AddAuthorization(options =>
