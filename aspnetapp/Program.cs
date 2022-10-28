@@ -45,10 +45,16 @@ builder.Services.ConfigureApplicationCookie(options =>
     // Cookie settings
     options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-
-    options.LoginPath = new PathString("/login");
+    
+   // 为 PathString.Empty ，则会将状态代码保留为 401 - Unauthorized ，而不将其更改为 302 - Found.
+    options.LoginPath = PathString.Empty;
     //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.SlidingExpiration = true;
+    //options.Events.OnRedirectToLogin = context =>
+    //{
+    //    context.Response.StatusCode = 401;
+    //    return Task.CompletedTask;
+    //};
 });
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 //builder.Services.AddAuthorization(options =>
