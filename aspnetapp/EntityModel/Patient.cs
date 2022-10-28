@@ -47,7 +47,10 @@ namespace EntityModel
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
-    }
+
+        public bool IsDeleted{ get; set; }
+
+}
     /// <summary>
     /// 患者教学视频记录表
     /// </summary>

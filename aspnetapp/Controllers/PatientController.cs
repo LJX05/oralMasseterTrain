@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -86,7 +87,6 @@ namespace aspnetapp.Controllers
                     queryable = queryable.Where(o => o.DoctorId == uid);
                 }
                 var count = queryable.Count();
-                pageQuery.pageSize = 50;
                 var patients = await queryable.Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
                     .Take(pageQuery.pageSize)
                     .ToListAsync();
@@ -99,11 +99,10 @@ namespace aspnetapp.Controllers
                         cid = _context.ClockIns.FirstOrDefault(c => c.OpenId == o.OpenId && DateTime.Now.Date == c.CreatedAt.Date)?.Id;
                     }
                     var teachName = "未设置";
-                    if(o.PToVList != null)
+                    if (o.PToVList != null)
                     {
-                     teachName = o.PToVList.Count > 0 ? string.Join(",", o.PToVList.Select(pt => pt.TVideo.Name)) : "未设置";
+                        teachName = o.PToVList.Count > 0 ? string.Join(",", o.PToVList.Select(pt => pt.TVideo.Name)) : "未设置";
                     }
-                    
                     return new
                     {
                         o.Id,
@@ -112,6 +111,7 @@ namespace aspnetapp.Controllers
                         o.CreatedAt,
                         o.OpenId,
                         o.UpdatedAt,
+                        o.Telephone,
                         SameDayIsCheck = islast ? '是' : '否',
                         LastCheckInVideos = islast ? o.LastCheckIn?.Videos
                         .Select(v => new
@@ -215,7 +215,7 @@ namespace aspnetapp.Controllers
                 {
                     return Error("该患者已登记无需登记" );
                 }
-                var user = userManger.FindByIdAsync(model.doctorId);
+                var user = await userManger.FindByIdAsync(model.doctorId);
                 if (user == null)
                 {
                     return Error("未找到选择的医生" );
@@ -273,6 +273,7 @@ namespace aspnetapp.Controllers
         /// <param name="id"></param>
         /// <param name="value"></param>
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult> Put(int id, [FromBody] int[] tid)
         {
             try
@@ -338,8 +339,32 @@ namespace aspnetapp.Controllers
 
         // DELETE api/<PatientController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        [Authorize]
+        public async Task<ActionResult> Delete(int id)
         {
+            try
+            {
+                if (!(User.Identity?.Name == "admin" || User.IsInRole("主任医生")))
+                {
+                    return Error("权限不足，只有【主任医生】才能删除！");
+                }
+                var patient = _context.Patients.FirstOrDefault(o => o.Id == id);
+                if (patient == null)
+                {
+                    return Error("该患者未登记");
+                }
+                patient.IsDeleted = true;
+                _context.Patients.Update(patient);
+                await _context.SaveChangesAsync();
+                return OkResult();
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+
         }
     }
 }

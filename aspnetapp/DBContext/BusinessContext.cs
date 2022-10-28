@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Hosting;
 
 namespace aspnetapp
 {
@@ -57,8 +58,9 @@ namespace aspnetapp
 
             modelBuilder.Entity<Patient>(entityModel =>
             {
+                entityModel.HasQueryFilter(p => !p.IsDeleted);
                 entityModel.HasMany(pv => pv.PToVList).WithOne().HasForeignKey(o => o.PId);
-                entityModel.HasOne(pv => pv.LastCheckIn ).WithMany()
+                entityModel.HasOne(pv => pv.LastCheckIn).WithMany()
                 .HasForeignKey(o => o.LastCheckInId);
             });
             modelBuilder.Entity<PatientToTeachVideo>()

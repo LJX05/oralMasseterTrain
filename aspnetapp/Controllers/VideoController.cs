@@ -1,6 +1,7 @@
 ﻿using aspnetapp.Common;
 using EntityModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -175,6 +176,14 @@ namespace aspnetapp.Controllers
                 if (video == null)
                 {
                     return Error("没有找到该视频");
+                }
+                if (video.Type == "教学视频")
+                {
+                    var toTeachVideo = _context.PatientToTeachVideos.FirstOrDefault(o => o.TVId == video.Id);
+                    if (toTeachVideo != null)
+                    {
+                        return Error($"无法删除视频，该视频绑定了患者id为{toTeachVideo.PId}");
+                    }
                 }
                 var ret = await WXCommon.DeleteUploadFile(new string[] { video.FileId }, this.Request);
                 if (!ret)
