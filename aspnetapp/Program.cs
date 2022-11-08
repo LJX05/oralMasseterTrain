@@ -2,6 +2,7 @@ using aspnetapp;
 using aspnetapp.Common;
 using aspnetapp.Middleware;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,11 +50,11 @@ builder.Services.ConfigureApplicationCookie(options =>
    // 为 PathString.Empty ，则会将状态代码保留为 401 - Unauthorized ，而不将其更改为 302 - Found.
     options.LoginPath = PathString.Empty;
     //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
-    options.SlidingExpiration = true;
-    options.Events.OnRedirectToLogin = context =>
+    options.SlidingExpiration = true; 
+    options.Events.OnRedirectToLogin = async (context) =>
     {
-        context.Response.StatusCode = 401;
-        return Task.CompletedTask;
+        context.Response.StatusCode = 200;
+        await context.Response.WriteAsJsonAsync(new SimpleResult() { code = 401, message = "未登录" }); 
     };
 });
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
