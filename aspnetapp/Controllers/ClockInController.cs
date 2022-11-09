@@ -319,7 +319,7 @@ namespace aspnetapp.Controllers
                 var dataTable = new DataTable();
                 var patients = await  _context.Patients.ToListAsync();
                 var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2).ToListAsync();
-                var pNames = patients.Select(o => o.Name);
+                var pNames = patients.Select(o => o.Name + "@" + o.Id + "@");
                 var simpleItems  = getSimpleItems();
                 dataTable.Columns.Add("日期");
                 simpleItems.Add(new SimpleItem { text = "日期", value = "日期", tag = 15 });

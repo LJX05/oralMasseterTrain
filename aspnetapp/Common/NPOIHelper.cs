@@ -81,9 +81,12 @@ namespace aspnetapp.Common
             foreach (SimpleItem item in listField)
             {
                 if (!dtDetail.Columns.Contains(item.value))
+                {
                     continue;
+                }
                 ICell cell = row.CreateCell(num++);
-                cell.SetCellValue(item.text);
+                var val = item.text.Split("@")[0];
+                cell.SetCellValue(val);
                 cell.CellStyle = headerStyle;
                 sheet.SetColumnWidth(num - 1, Convert.ToInt32(item.tag) * 256);
                 row.Height = 22 * 20;
