@@ -76,6 +76,21 @@ namespace aspnetapp.Common
             headerStyle.FillForegroundColor = hssFColor.Indexed;
             headerStyle.FillPattern = FillPattern.SolidForeground;
 
+            #region
+            ICellStyle redStyle = book.CreateCellStyle();
+            redStyle.Alignment = HorizontalAlignment.Center;
+            redStyle.VerticalAlignment = VerticalAlignment.Center;
+            redStyle.BorderBottom = BorderStyle.Thin;
+            redStyle.BorderLeft = BorderStyle.Thin;
+            redStyle.BorderRight = BorderStyle.Thin;
+            redStyle.BorderTop = BorderStyle.Thin;
+            redStyle.WrapText = true;
+            var font = book.CreateFont();
+            font.Color= HSSFColor.Red.Index;
+            redStyle.SetFont(font);
+            #endregion
+
+
             //设置标题
             int num = 0;
             foreach (SimpleItem item in listField)
@@ -92,7 +107,7 @@ namespace aspnetapp.Common
                 row.Height = 22 * 20;
             }
             ICellStyle cellStyle = book.CreateCellStyle();
-            cellStyle.Alignment = HorizontalAlignment.Left;
+            cellStyle.Alignment = HorizontalAlignment.Center;
             cellStyle.VerticalAlignment = VerticalAlignment.Center;
             cellStyle.BorderBottom = BorderStyle.Thin;
             cellStyle.BorderLeft = BorderStyle.Thin;
@@ -112,8 +127,18 @@ namespace aspnetapp.Common
                     if (!dtDetail.Columns.Contains(item.value))
                         continue;
                     var cell = row.CreateCell(iCol++);
-                    cell.SetCellValue(rowDetail[item.value] + "");
-                    cell.CellStyle = cellStyle;
+                    var val = rowDetail[item.value] + "";
+                    cell.SetCellValue(val);
+      
+                    if (val =="未打卡")
+                    {
+                        cell.CellStyle = redStyle;
+                    }
+                    else
+                    {
+                        cell.CellStyle = cellStyle;
+                    }
+                   
                 }
             }
             book.Write(stream);
