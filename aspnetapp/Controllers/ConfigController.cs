@@ -210,6 +210,12 @@ namespace aspnetapp.Controllers
             list.Add(item43);
             list.Add(item44);
             list.Add(item45);
+            var item51 = new FunctionItem(5, "患者归档", "dataArchive");
+            var item52 = new FunctionItem(51, "读取", "dataArchive_read", 5);
+
+            list.Add(item51);
+            list.Add(item52);
+
             return list;
         }
         /// <summary>

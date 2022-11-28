@@ -80,7 +80,7 @@ namespace aspnetapp.Controllers
             try
             {
                 IQueryable<Patient> queryable;
-                queryable = _context.Patients.Where(o => o.Name.Contains(pageQuery.search));
+                queryable = _context.Patients.Where(o => o.Status != 1).Where(o => o.Name.Contains(pageQuery.search));
                 if (!(User.Identity?.Name == "admin" || User.IsInRole("主任医生")))
                 {
                     var uid = userManager.GetUserId(User);
@@ -121,6 +121,7 @@ namespace aspnetapp.Controllers
                         }) : null,
                         teachName = teachName,
                         todayClockInId = cid,//当天签到
+                        remark = o.Remark
                     };
                 });
                 return OkResult(new PageResult{
@@ -133,6 +134,52 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        // GET api/<PatientController>/5
+        [HttpPut("editRemark/{id}")]
+        public async Task<ActionResult> EditRemark(int id,[FromBody] string remark, [FromServices] UserManager<NoteUser> userManger)
+        {
+            try
+            {
+                var patient = _context.Patients.SingleOrDefault(b => b.Id == id);
+                if (patient == null)
+                {
+                    return Error("没有此微信用户,请先注册");
+                }
+                patient.Remark = remark;
+                _context.Patients.Update(patient);
+                await _context.SaveChangesAsync();
+                return OkResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+        // GET api/<PatientController>/5
+        [HttpPut("dataArchive/{id}")]
+        public async Task<ActionResult> DataArchive(int id, [FromServices] UserManager<NoteUser> userManger)
+        {
+            try
+            {
+                var patient = _context.Patients.SingleOrDefault(b => b.Id == id);
+                if (patient == null)
+                {
+                    return Error("没有此微信用户,请先注册");
+                }
+                patient.Status = 1;
+                _context.Patients.Update(patient);
+                await _context.SaveChangesAsync();
+                return OkResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+
         // GET api/<PatientController>/5
         [HttpGet("getDetail/{openId}")]
         public async Task<ActionResult> GetDetail(string openId, [FromServices] UserManager<NoteUser> userManger)

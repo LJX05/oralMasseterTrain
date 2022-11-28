@@ -298,6 +298,59 @@ namespace aspnetapp.Controllers
             }
         }
 
+
+        /// <summary>
+        /// 医生自定义反馈
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="value"></param>
+        [HttpPut("remindCustom/{openId}")]
+        public async Task<ActionResult> RemindCustom(string openId,[FromBody]string remark,
+            [FromServices] UserManager<NoteUser> userManager)
+        {
+            try
+            {
+
+                var model = await _context.WeMessageTemplates.OrderBy(o => o.CreatedAt).LastOrDefaultAsync(o => o.OpenId == openId && o.TempName == "打卡提醒" && o.IS_Send == false);
+                if (model == null)
+                {
+                    return Error("当前用户没有授权提醒，请打电话提醒！");
+                }
+                var data = new
+                {
+                    thing4 = new
+                    {
+                        value = "提醒打卡"
+                    },
+                    time2 = new
+                    {
+                        value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    },
+                    thing3 = new //备注
+                    {
+                        value = remark
+                    },
+                };
+                var send = await WXCommon.SendMessage(model, data, this.Request);
+                if (send)
+                {
+                    model.IS_Send = true;
+                    _context.WeMessageTemplates.Update(model);
+                    _context.SaveChanges();
+                    return OkResult();
+                }
+                else
+                {
+                    return Error("发送消息失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         // DELETE api/<PatientController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
@@ -317,8 +370,8 @@ namespace aspnetapp.Controllers
             try
             {
                 var dataTable = new DataTable();
-                var patients = await  _context.Patients.ToListAsync();
-                var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2).ToListAsync();
+                var patients = await _context.Patients.Where(o => o.Status != 1).ToListAsync();
+                var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2 ).ToListAsync();
                 var pNames = patients.Select(o => o.Name + "@" + o.Id + "@");
                 var simpleItems  = getSimpleItems();
                 dataTable.Columns.Add("日期");

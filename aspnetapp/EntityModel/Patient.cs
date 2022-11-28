@@ -34,6 +34,18 @@ namespace EntityModel
         /// </summary>
         public DateTime? LastCheckInTime { get; set; }
 
+
+        /// <summary>
+        /// 病例备注
+        /// </summary>
+        public string Remark { get; set; }
+
+        /// <summary>
+        /// 状态 1为归档
+        /// </summary>
+        public int Status { get; set; }
+
+
         public int? LastCheckInId { get; set; }
         /// <summary>
         /// 最后一次签到记录
