@@ -134,7 +134,53 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        // GET api/<PatientController>/5
+
+
+        [HttpPost("record")]
+        [Authorize]
+        public async Task<ActionResult> Record([FromBody] PageQuery pageQuery,
+            [FromServices] UserManager<NoteUser> userManager)
+        {
+            try
+            {
+                IQueryable<Patient> queryable;
+                queryable = _context.Patients.Where(o => o.Status == 1).Where(o => o.Name.Contains(pageQuery.search));
+                if (!(User.Identity?.Name == "admin" || User.IsInRole("主任医生")))
+                {
+                    var uid = userManager.GetUserId(User);
+                    queryable = queryable.Where(o => o.DoctorId == uid);
+                }
+                var count = queryable.Count();
+                var patients = await queryable.Skip(pageQuery.pageSize * (pageQuery.pageIndex - 1))
+                    .Take(pageQuery.pageSize)
+                    .ToListAsync();
+                var list = patients.Select(o =>
+                {
+                    return new
+                    {
+                        o.Id,
+                        o.Name,
+                        o.Sex,
+                        o.CreatedAt,
+                        o.OpenId,
+                        o.UpdatedAt,
+                        o.Telephone,
+                        remark = o.Remark
+                    };
+                });
+                return OkResult(new PageResult
+                {
+                    count = count,
+                    list = list
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut("editRemark/{id}")]
         public async Task<ActionResult> EditRemark(int id,[FromBody] string remark, [FromServices] UserManager<NoteUser> userManger)
         {
@@ -265,7 +311,7 @@ namespace aspnetapp.Controllers
                 var user = await userManger.FindByIdAsync(model.doctorId);
                 if (user == null)
                 {
-                    return Error("未找到选择的医生" );
+                    return Error("未找到选择的医生");
                 }
                 var patient = new Patient()
                 {
@@ -274,10 +320,11 @@ namespace aspnetapp.Controllers
                     UpdatedAt = DateTime.Now,
                     BirthDate = model.birthDate,
                     Telephone = model.phoneNumber,
-                    LastCheckInId =-1,
+                    LastCheckInId = -1,
                     Name = model.name,
                     Sex = model.sex,
-                    OpenId = model.openId
+                    OpenId = model.openId,
+                    Remark = "未编写"
                 };
                 await _context.Patients.AddAsync(patient);
                 await _context.SaveChangesAsync();

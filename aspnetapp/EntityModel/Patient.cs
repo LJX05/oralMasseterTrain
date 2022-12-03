@@ -38,7 +38,7 @@ namespace EntityModel
         /// <summary>
         /// ²¡Àý±¸×¢
         /// </summary>
-        public string Remark { get; set; }
+        public string Remark { get; set; } = string.Empty;
 
         /// <summary>
         /// ×´Ì¬ 1Îª¹éµµ
