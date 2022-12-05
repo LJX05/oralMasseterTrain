@@ -101,11 +101,20 @@ namespace aspnetapp.Controllers
                 var video = _context.Videos.FirstOrDefault(o => o.Id == id);
                 if (video == null)
                 {
-                    return Error("没有找到视频文件" );
+                    return Error("没有找到视频文件");
                 }
-                ret.data = await WXCommon.GetFileTemporaryLink(video.FileId, 7200,this.Request);
-                cache.Set(nameof(GetVideoUrl) + "$" + id, ret.data, TimeSpan.FromSeconds(7200));
-                return OkResult();
+                var fUrl = await WXCommon.GetFileTemporaryLink(video.FileId, 7200,this.Request);
+                if (!string.IsNullOrEmpty(fUrl))
+                {
+                    ret.data = fUrl;
+                    cache.Set(nameof(GetVideoUrl) + "$" + id, ret.data, TimeSpan.FromSeconds(7200));
+                    return OkResult(ret);
+                }
+                else
+                {
+                    return Error("视频链接获取失败！请稍后重试");
+                }
+                
             }
             catch (Exception ex)
             {
