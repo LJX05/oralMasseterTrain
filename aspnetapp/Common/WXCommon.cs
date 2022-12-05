@@ -142,6 +142,7 @@ namespace aspnetapp.Common
             };
         }
 
+     
 
         public static async Task<string> GetOpenId(string code)
         {

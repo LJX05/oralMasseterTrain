@@ -3,7 +3,9 @@ using EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NPOI.POIFS.Crypt.Dsig;
 using NPOI.SS.Formula.Functions;
+using NuGet.Packaging;
 using System.Data;
 using System.IO;
 using System.Security.Claims;
@@ -370,36 +372,44 @@ namespace aspnetapp.Controllers
             try
             {
                 var dataTable = new DataTable();
-                var patients = await _context.Patients.Where(o => o.Status != 1).ToListAsync();
-                var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2 ).ToListAsync();
-                var pNames = patients.Select(o => o.Name + "@" + o.Id + "@");
-                var simpleItems  = getSimpleItems();
-                dataTable.Columns.Add("日期");
-                simpleItems.Add(new SimpleItem { text = "日期", value = "日期", tag = 15 });
-                foreach (var item in pNames)
+                var simpleItems = getSimpleItems();
+                var dateItems = new List<SimpleItem>();
+                foreach (var item in simpleItems)
                 {
-                    dataTable.Columns.Add(item);
-                    simpleItems.Add(new SimpleItem { text = item, value = item, tag = 12 });
+                    dataTable.Columns.Add(item.text);
                 }
                 for (DateTime time = pageQuery.date1; time <= pageQuery.date2; time = time.AddDays(1))
                 {
-                    //当天打卡的人
-                    var clocks = clockIns.Where(o => o.CreatedAt.Date == time.Date);
-
-                    var data = patients.Select(p =>
+                    dateItems.Add(new SimpleItem { text = time.ToString("yyyy-MM-dd"), value = time.ToString("yyyy-MM-dd"), tag = 12 });
+                    dataTable.Columns.Add(time.ToString("yyyy-MM-dd"));
+                };
+                simpleItems.AddRange(dateItems);
+                var patients = await _context.Patients.Where(o => o.Status != 1).ToListAsync();
+                var clockIns = await _context.ClockIns.Where(o => o.CreatedAt >= pageQuery.date1 && o.CreatedAt <= pageQuery.date2).ToListAsync();
+                
+                foreach (var patient in patients)
+                {
+                    var data = new List<string>();  
+                    data.Add(patient.Name);
+                    data.Add(patient.Sex);
+                    data.Add(GetAgeByBirthdate(patient.BirthDate));
+                    data.Add(patient.Telephone);
+                    data.Add(patient.CreatedAt.ToString("yyyy-MM-dd"));
+                    data.Add(string.Join(",",patient.PToVList.Select(o=>o.TVideo.Name)));
+                    var clocks = clockIns.Where(c => c.OpenId == patient.OpenId);
+                    foreach (var item in dateItems)
                     {
-                        if (clocks.Any(c => c.OpenId == p.OpenId))
+                        if (clocks.Any(c=> c.CreatedAt.ToString("yyyy-MM-dd") == item.text))
                         {
-                            return "打卡";
+                            data.Add("打卡");
                         }
                         else
                         {
-                            return "未打卡";
+                            data.Add("未打卡");
                         }
-                    }).ToList();
-                    data.Insert(0, time.ToString("yyyy-MM-dd")); 
+                    }
                     dataTable.Rows.Add(data.ToArray());
-                };
+                }
                 using (var stream = new MemoryStream())
                 {
                     NPOIHelper.exportToExcel(dataTable, simpleItems, stream);
@@ -413,12 +423,30 @@ namespace aspnetapp.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
+        private string GetAgeByBirthdate(DateTime? date)
+        {
+            if (date == null)
+            {
+                return "-";
+            }
+            var birthdate = date.Value;
+            DateTime now = DateTime.Now;
+            int age = now.Year - birthdate.Year;
+            if (now.Month < birthdate.Month || (now.Month == birthdate.Month && now.Day < birthdate.Day))
+            {
+                age--;
+            }
+            return (age < 0 ? 0 : age) +$"岁【{birthdate.ToString("yyyy-MM-dd")}】";
+        }
         private IList<SimpleItem> getSimpleItems()
         {
             var list = new List<SimpleItem>();
-
-
+            list.Add(new SimpleItem { text = "姓名", value = "姓名", tag = 15 });
+            list.Add(new SimpleItem { text = "性别", value = "性别", tag = 12 });
+            list.Add(new SimpleItem { text = "年龄", value = "年龄", tag = 18 });
+            list.Add(new SimpleItem { text = "联系方式", value = "联系方式", tag = 15 });
+            list.Add(new SimpleItem { text = "初诊时间", value = "初诊时间", tag = 15 });
+            list.Add(new SimpleItem { text = "肌训内容", value = "肌训内容", tag = 15 });
             return list;
         }
     }
